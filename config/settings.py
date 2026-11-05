@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,15 +22,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# 운영에서는 DJANGO_SECRET_KEY 환경변수로 넣는다. 아래 값은 개발 전용이며 유출돼도 무방하다.
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-dev-only-do-not-use-in-production-0000000000000000')
-
-# SECURITY WARNING: don't run with debug turned on in production!
 # 운영에서는 DJANGO_DEBUG=0 으로 끈다. 켜 둔 채 공개하면 에러 화면에 설정과 코드가 그대로 노출된다.
 DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
+
+# 개발에서만 고정값을 쓰고, 운영에서는 환경변수가 없으면 아예 기동하지 않는다.
+# 예전처럼 기본값으로 조용히 돌아가면, 설정을 깜빡한 서버가 공개된 키로 세션을 서명하게 된다.
+if DEBUG:
+    SECRET_KEY = 'django-insecure-dev-only-do-not-use-in-production-0000000000000000'
+else:
+    try:
+        SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
+    except KeyError:
+        raise ImproperlyConfigured(
+            'DJANGO_DEBUG=0 으로 띄우려면 DJANGO_SECRET_KEY 를 설정해야 합니다. '
+            '생성: python -c "from django.core.management.utils import '
+            'get_random_secret_key as k; print(k())"')
 
 # 이 서버가 응답할 도메인 목록. 여기 없는 host 헤더로 들어오면 Django 가 거부한다.
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
@@ -142,3 +150,42 @@ CENTER = {
     'address': '경기도 ○○시 ○○로 00',
     'hours': '평일 12:00~20:00 / 방학 09:00~18:00',
 }
+
+
+# --- 운영 전용 보안 설정 ---------------------------------------------------
+# 개발(DEBUG=True)에서는 https 가 없으므로 켜면 접속이 안 된다. 그래서 운영에서만 적용한다.
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True       # http 로 들어오면 https 로 돌려보낸다
+    SESSION_COOKIE_SECURE = True     # 세션 쿠키를 https 로만 전송 (도청 시 세션 탈취 방지)
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 3600       # 브라우저에 "이 사이트는 https 로만" 지시
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+# 센터 공용 PC 에서 로그아웃을 깜빡해도 오래 열려 있지 않게 한다.
+SESSION_COOKIE_AGE = 60 * 60 * 4           # 4시간
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# DEBUG=False 면 에러가 화면에 안 나온다. 파일로 남겨야 사후에 원인을 볼 수 있다.
+# 주의: 에러 추적에는 요청 내용이 포함되므로 이 파일에도 아동 정보가 섞일 수 있다.
+#       DB 와 같은 수준으로 보관·파기를 관리할 것.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'error.log',
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 3,
+            'formatter': 'verbose',
+        },
+    },
+    'formatters': {
+        'verbose': {'format': '{asctime} {levelname} {name} {message}', 'style': '{'},
+    },
+    'loggers': {
+        'django.request': {'handlers': ['file'], 'level': 'ERROR', 'propagate': True},
+        'django.security': {'handlers': ['file'], 'level': 'WARNING', 'propagate': True},
+    },
+}
+(BASE_DIR / 'logs').mkdir(exist_ok=True)
