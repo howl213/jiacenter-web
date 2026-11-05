@@ -7,3 +7,6 @@ __pycache__/
 .env
 .DS_Store
 logs/
+
+# Google Drive 동기화 임시 폴더
+.tmp.driveupload/
