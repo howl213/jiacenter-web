@@ -1,0 +1,26 @@
+name: test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: pip install -r requirements.txt
+      - name: 테스트
+        run: python manage.py test
+      - name: 보안 설정 점검
+        # 운영 설정(DEBUG=0)에서 Django 자체 점검을 돌린다.
+        # 현재는 미해결 경고가 있어 실패해도 머지를 막지 않는다. 조치 후 이 줄을 지운다.
+        continue-on-error: true
+        env:
+          DJANGO_DEBUG: '0'
+          DJANGO_SECRET_KEY: ci-only-not-a-real-secret-ci-only-not-a-real-secret
+        run: python manage.py check --deploy

@@ -1,0 +1,8 @@
+{% extends 'center/base.html' %}
+{% block title %}{{ notice.title }}{% endblock %}
+{% block content %}
+<h1>{{ notice.title }}</h1>
+<time class="meta">{{ notice.created_at|date:'Y년 m월 d일' }}</time>
+<div class="body">{{ notice.body|linebreaks }}</div>
+<p><a class="more" href="{% url 'notices' %}">← 목록으로</a></p>
+{% endblock %}

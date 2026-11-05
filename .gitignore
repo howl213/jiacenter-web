@@ -1,0 +1,8 @@
+# 아동 이름·보호자 연락처가 들어 있다. 절대 커밋하지 않는다.
+db.sqlite3
+
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.DS_Store

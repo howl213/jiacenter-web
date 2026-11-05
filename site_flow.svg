@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 1923" width="1240" height="1923" role="img" aria-label="사이트 전체 흐름 — 주소 하나를 열면 일어나는 일">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b636b"/></marker></defs>
+<rect width="1240" height="1923" fill="#fbfaf7"/>
+<text x="30" y="40" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="22" fill="#1f2328" font-weight="700" text-anchor="start">사이트 전체 흐름 — 주소 하나를 열면 일어나는 일</text>
+<text x="30" y="64" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="12.5" fill="#5b636b" font-weight="400" text-anchor="start">브라우저 요청이 URL → 뷰 → DB → 템플릿을 거쳐 HTML로 돌아오기까지. 'L…'는 코드 줄 번호, 색은 그 단계의 역할.</text>
+<text x="30" y="85" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#5b636b" font-weight="700" text-anchor="start">입력 (HTTP 요청)</text>
+<rect x="30.0" y="90" width="172.5" height="62" rx="8" fill="#ffffff" stroke="#c9ccd1" stroke-width="1.5"/>
+<text x="116.25" y="112" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#1f2328" font-weight="700" text-anchor="middle">method</text>
+<text x="116.25" y="130" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11" fill="#5b636b" font-weight="400" text-anchor="middle">GET(보기) 또는 POST(출결</text>
+<text x="116.25" y="145" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11" fill="#5b636b" font-weight="400" text-anchor="middle">처리)</text>
+<rect x="212.5" y="90" width="172.5" height="62" rx="8" fill="#ffffff" stroke="#c9ccd1" stroke-width="1.5"/>
+<text x="298.75" y="112" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#1f2328" font-weight="700" text-anchor="middle">path</text>
+<text x="298.75" y="130" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11" fill="#5b636b" font-weight="400" text-anchor="middle">/ , /notices/ ,</text>
+<text x="298.75" y="145" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11" fill="#5b636b" font-weight="400" text-anchor="middle">/attendance/ …</text>
+<rect x="395.0" y="90" width="172.5" height="62" rx="8" fill="#ffffff" stroke="#c9ccd1" stroke-width="1.5"/>
+<text x="481.25" y="112" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#1f2328" font-weight="700" text-anchor="middle">세션 쿠키</text>
+<text x="481.25" y="130" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11" fill="#5b636b" font-weight="400" text-anchor="middle">직원 로그인 여부 판단에만</text>
+<text x="481.25" y="145" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11" fill="#5b636b" font-weight="400" text-anchor="middle">쓰임</text>
+<rect x="577.5" y="90" width="172.5" height="62" rx="8" fill="#ffffff" stroke="#c9ccd1" stroke-width="1.5"/>
+<text x="663.75" y="112" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#1f2328" font-weight="700" text-anchor="middle">POST 데이터</text>
+<text x="663.75" y="130" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11" fill="#5b636b" font-weight="400" text-anchor="middle">출석번호 또는 아동 id</text>
+<line x1="390.0" y1="152" x2="390.0" y2="211" stroke="#5b636b" stroke-width="2" marker-end="url(#ah)"/>
+<rect x="790" y="90" width="420" height="104" rx="8" fill="#ffffff" stroke="#c9ccd1" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="804" y="112" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="12" fill="#1f2328" font-weight="700" text-anchor="start">서버가 뜰 때 1회</text>
+<text x="804" y="132" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#5b636b" font-weight="400" text-anchor="start">settings.CENTER 에 센터 이름·전화·주소를 적어둔다</text>
+<text x="804" y="152" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#5b636b" font-weight="400" text-anchor="start">context.center() 가 모든 템플릿에 그 값을 자동 주입</text>
+<text x="804" y="172" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#5b636b" font-weight="400" text-anchor="start">→ 템플릿마다 센터 정보를 넘겨줄 필요가 없다</text>
+<rect x="30" y="215" width="720" height="146" rx="12" fill="#eaf3f7" stroke="#0369a1" stroke-width="1.8"/>
+<circle cx="60" cy="245" r="15" fill="#0369a1"/>
+<text x="60" y="251" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#fff" font-weight="700" text-anchor="middle">1</text>
+<text x="88" y="244" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#1f2328" font-weight="700" text-anchor="start">어느 앱으로 갈지 가른다</text>
+<text x="736" y="244" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="end">config/urls.py L21–22</text>
+<rect x="88" y="255" width="44.0" height="17" rx="8.5" fill="#0369a1" stroke="#0369a1" stroke-width="0"/>
+<text x="110.0" y="267.5" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#fff" font-weight="700" text-anchor="middle">route</text>
+<text x="138.0" y="268" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="start">ROOT_URLCONF</text>
+<text x="88" y="299" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">/admin/ 으로 시작하면 → Django 기본 관리자 화면</text>
+<text x="88" y="319" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">그 밖의 모든 주소는 → center 앱으로 넘긴다</text>
+<text x="88" y="339" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">관리자 화면은 우리가 만든 코드가 아니라 Django 제공</text>
+<rect x="790" y="225" width="380" height="72" rx="8" fill="#ffffff" stroke="#c9ccd1" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="802" y="247" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="12" fill="#1f2328" font-weight="700" text-anchor="start">/admin/ 은 왜 그냥 쓰나</text>
+<text x="802" y="267" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#5b636b" font-weight="400" text-anchor="start">공지·프로그램·아동·출결 등록을 전부 해준다</text>
+<text x="802" y="285" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#5b636b" font-weight="400" text-anchor="start">따로 관리 화면을 만들지 않아 코드가 줄었다</text>
+<line x1="390.0" y1="361" x2="390.0" y2="398" stroke="#5b636b" stroke-width="2" marker-end="url(#ah)"/>
+<text x="402.0" y="386.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="12" fill="#0369a1" font-weight="700" text-anchor="start">path</text>
+<rect x="30" y="401" width="720" height="166" rx="12" fill="#eaf3f7" stroke="#0369a1" stroke-width="1.8"/>
+<circle cx="60" cy="431" r="15" fill="#0369a1"/>
+<text x="60" y="437" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#fff" font-weight="700" text-anchor="middle">2</text>
+<text x="88" y="430" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#1f2328" font-weight="700" text-anchor="start">8개 주소 중 하나로 연결</text>
+<text x="736" y="430" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="end">center/urls.py L6–13</text>
+<rect x="88" y="441" width="44.0" height="17" rx="8.5" fill="#0369a1" stroke="#0369a1" stroke-width="0"/>
+<text x="110.0" y="453.5" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#fff" font-weight="700" text-anchor="middle">route</text>
+<text x="138.0" y="454" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="start">urlpatterns</text>
+<text x="88" y="485" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">/ 홈 · /notices/ 공지 · /notices/&lt;번호&gt;/ 공지상세</text>
+<text x="88" y="505" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">/programs/ 프로그램 · /about/ 소개</text>
+<text x="88" y="525" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">/attendance/ 키오스크 · /attendance/board/ 현황판</text>
+<text x="88" y="545" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">/attendance/export/ 월별 CSV · 없으면 404</text>
+<line x1="390.0" y1="567" x2="390.0" y2="604" stroke="#5b636b" stroke-width="2" marker-end="url(#ah)"/>
+<text x="402.0" y="592.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="12" fill="#0369a1" font-weight="700" text-anchor="start">view 함수</text>
+<rect x="30" y="607" width="720" height="166" rx="12" fill="#f9ecec" stroke="#b91c1c" stroke-width="1.8"/>
+<circle cx="60" cy="637" r="15" fill="#b91c1c"/>
+<text x="60" y="643" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#fff" font-weight="700" text-anchor="middle">3</text>
+<text x="88" y="636" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#1f2328" font-weight="700" text-anchor="start">들어가도 되는 사람인가</text>
+<text x="736" y="636" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="end">views.py L159, L202</text>
+<rect x="88" y="647" width="44.0" height="17" rx="8.5" fill="#b91c1c" stroke="#b91c1c" stroke-width="0"/>
+<text x="110.0" y="659.5" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#fff" font-weight="700" text-anchor="middle">guard</text>
+<text x="138.0" y="660" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="start">@staff_member_required</text>
+<text x="88" y="691" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">앞의 5개 주소는 누구나 볼 수 있다 (공개)</text>
+<text x="88" y="711" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">현황판과 CSV 내보내기는 직원 로그인을 요구한다</text>
+<text x="88" y="731" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">로그인 안 했으면 admin 로그인 화면으로 돌려보낸다</text>
+<text x="88" y="751" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">  아동 실명·보호자 정보가 보이는 화면이라서</text>
+<line x1="390.0" y1="773" x2="390.0" y2="810" stroke="#5b636b" stroke-width="2" marker-end="url(#ah)"/>
+<text x="402.0" y="798.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="12" fill="#b91c1c" font-weight="700" text-anchor="start">통과 / 302 리다이렉트</text>
+<rect x="30" y="813" width="720" height="166" rx="12" fill="#f9f1eb" stroke="#b45309" stroke-width="1.8"/>
+<circle cx="60" cy="843" r="15" fill="#b45309"/>
+<text x="60" y="849" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#fff" font-weight="700" text-anchor="middle">4</text>
+<text x="88" y="842" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#1f2328" font-weight="700" text-anchor="start">뷰가 할 일을 한다</text>
+<text x="736" y="842" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="end">views.py L32–220</text>
+<rect x="88" y="853" width="36.8" height="17" rx="8.5" fill="#b45309" stroke="#b45309" stroke-width="0"/>
+<text x="106.4" y="865.5" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#fff" font-weight="700" text-anchor="middle">view</text>
+<text x="130.8" y="866" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="start">읽기 5 + 쓰기 2 + 내보내기 1</text>
+<text x="88" y="897" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">홈·공지·프로그램·소개: DB에서 읽어오기만 한다</text>
+<text x="88" y="917" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">키오스크: 타일이나 번호로 입/퇴실을 찍는다</text>
+<text x="88" y="937" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">현황판: 날짜를 옮겨 다니며 시각·사유를 수기 수정</text>
+<text x="88" y="957" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">  자세한 내부는 attendance_flow.svg 참고</text>
+<line x1="390.0" y1="979" x2="390.0" y2="1016" stroke="#5b636b" stroke-width="2" marker-end="url(#ah)"/>
+<text x="402.0" y="1004.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="12" fill="#b45309" font-weight="700" text-anchor="start">context (템플릿에 넘길 값)</text>
+<rect x="30" y="1019" width="720" height="166" rx="12" fill="#ebf4f3" stroke="#0f766e" stroke-width="1.8"/>
+<circle cx="60" cy="1049" r="15" fill="#0f766e"/>
+<text x="60" y="1055" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#fff" font-weight="700" text-anchor="middle">5</text>
+<text x="88" y="1048" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#1f2328" font-weight="700" text-anchor="start">DB에서 읽고 쓴다</text>
+<text x="736" y="1048" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="end">center/models.py</text>
+<rect x="88" y="1059" width="36.8" height="17" rx="8.5" fill="#0f766e" stroke="#0f766e" stroke-width="0"/>
+<text x="106.4" y="1071.5" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#fff" font-weight="700" text-anchor="middle">data</text>
+<text x="130.8" y="1072" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="start">표 5개</text>
+<text x="88" y="1103" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">Notice 공지 · Program 프로그램 (admin에서 입력)</text>
+<text x="88" y="1123" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">Child 아동 — 출석번호와 인식번호를 함께 가진다</text>
+<text x="88" y="1143" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">Attendance 출결 — 하루 1행, 사유(출석/결석/조퇴/병가)</text>
+<text x="88" y="1163" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">NotifyLog 보냈어야 할 알림톡 · 저장소는 db.sqlite3</text>
+<line x1="390.0" y1="1185" x2="390.0" y2="1222" stroke="#5b636b" stroke-width="2" marker-end="url(#ah)"/>
+<text x="402.0" y="1210.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="12" fill="#0f766e" font-weight="700" text-anchor="start">모델 객체들</text>
+<rect x="30" y="1225" width="720" height="166" rx="12" fill="#f0f4eb" stroke="#4d7c0f" stroke-width="1.8"/>
+<circle cx="60" cy="1255" r="15" fill="#4d7c0f"/>
+<text x="60" y="1261" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#fff" font-weight="700" text-anchor="middle">6</text>
+<text x="88" y="1254" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#1f2328" font-weight="700" text-anchor="start">HTML로 조립</text>
+<text x="736" y="1254" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="end">templates/center/*.html</text>
+<rect x="88" y="1265" width="29.6" height="17" rx="8.5" fill="#4d7c0f" stroke="#4d7c0f" stroke-width="0"/>
+<text x="102.8" y="1277.5" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#fff" font-weight="700" text-anchor="middle">tpl</text>
+<text x="123.6" y="1278" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#5b636b" font-weight="400" text-anchor="start">base.html 상속</text>
+<text x="88" y="1309" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">머리말·메뉴·바닥글은 base.html 한 곳에만 있다</text>
+<text x="88" y="1329" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">메뉴 끝에 직원만 보이는 '출결 관리' 링크가 붙는다</text>
+<text x="88" y="1349" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">  로그인 안 했으면 '직원 로그인' 으로 바뀐다</text>
+<text x="88" y="1369" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="400" text-anchor="start">모양은 static/center/style.css 한 장이 전부</text>
+<line x1="390.0" y1="1391" x2="390.0" y2="1432" stroke="#5b636b" stroke-width="2" marker-end="url(#ah)"/>
+<text x="402.0" y="1419" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="12" fill="#4b5563" font-weight="700" text-anchor="start">브라우저로 돌아가는 응답</text>
+<rect x="30" y="1435" width="1180" height="136" rx="12" fill="#eef0f3" stroke="#4b5563" stroke-width="1.8"/>
+<text x="48" y="1463" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#1f2328" font-weight="700" text-anchor="start">최종 결과</text>
+<rect x="48.0" y="1479" width="278.5" height="76" rx="8" fill="#fff3e8" stroke="#e08a3c" stroke-width="1.4"/>
+<text x="58.0" y="1501" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#1f2328" font-weight="700" text-anchor="start">200 HTML</text>
+<text x="58.0" y="1523" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#5b636b" font-weight="400" text-anchor="start">정상 — 요청한 페이지</text>
+<rect x="336.5" y="1479" width="278.5" height="76" rx="8" fill="#fff" stroke="#c9ccd1" stroke-width="1.4"/>
+<text x="346.5" y="1501" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#1f2328" font-weight="700" text-anchor="start">200 CSV</text>
+<text x="346.5" y="1523" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#5b636b" font-weight="400" text-anchor="start">월별 출결 파일 (엑셀에서 바로 열림)</text>
+<rect x="625.0" y="1479" width="278.5" height="76" rx="8" fill="#fff" stroke="#c9ccd1" stroke-width="1.4"/>
+<text x="635.0" y="1501" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#1f2328" font-weight="700" text-anchor="start">302 리다이렉트</text>
+<text x="635.0" y="1523" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#5b636b" font-weight="400" text-anchor="start">현황판·내보내기·관리자에 로그인 없이</text>
+<text x="635.0" y="1540" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#5b636b" font-weight="400" text-anchor="start">접근했을 때</text>
+<rect x="913.5" y="1479" width="278.5" height="76" rx="8" fill="#fff" stroke="#c9ccd1" stroke-width="1.4"/>
+<text x="923.5" y="1501" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#1f2328" font-weight="700" text-anchor="start">404</text>
+<text x="923.5" y="1523" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.5" fill="#5b636b" font-weight="400" text-anchor="start">없는 공지 번호나 없는 주소</text>
+<text x="30" y="1603" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="16" fill="#1f2328" font-weight="700" text-anchor="start">실제 응답 결과</text>
+<text x="30" y="1625" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="12" fill="#5b636b" font-weight="400" text-anchor="start">로그인하지 않은 상태로 모든 주소를 실제 호출한 값</text>
+<rect x="30.0" y="1639" width="380.0" height="166" rx="10" fill="#ecf8ef" stroke="#15803d" stroke-width="1.6"/>
+<text x="44.0" y="1661" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="14" fill="#15803d" font-weight="700" text-anchor="start">공개 페이지 — 누구나</text>
+<text x="44.0" y="1683" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">/            200</text>
+<text x="44.0" y="1702" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">/notices/    200</text>
+<text x="44.0" y="1721" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">/notices/1/  200</text>
+<text x="44.0" y="1740" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">/programs/   200</text>
+<text x="44.0" y="1759" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">/about/      200</text>
+<text x="44.0" y="1778" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">/attendance/ 200</text>
+<rect x="430.0" y="1639" width="380.0" height="166" rx="10" fill="#fdeeee" stroke="#b91c1c" stroke-width="1.6"/>
+<text x="444.0" y="1661" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="14" fill="#b91c1c" font-weight="700" text-anchor="start">보호된 페이지</text>
+<text x="444.0" y="1683" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">/attendance/board/   302</text>
+<text x="444.0" y="1702" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">  → /admin/login/?next=…</text>
+<text x="444.0" y="1721" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">/attendance/export/  302</text>
+<text x="444.0" y="1740" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">/admin/              302</text>
+<rect x="830.0" y="1639" width="380.0" height="166" rx="10" fill="#f1f2f4" stroke="#4b5563" stroke-width="1.6"/>
+<text x="844.0" y="1661" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="14" fill="#4b5563" font-weight="700" text-anchor="start">없는 것</text>
+<text x="844.0" y="1683" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">/notices/999/  404</text>
+<text x="844.0" y="1702" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="11.8" fill="#1f2328" font-weight="400" text-anchor="start">존재하지 않는 공지 번호</text>
+<text x="30" y="1835" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#1f2328" font-weight="700" text-anchor="start">색 범례</text>
+<rect x="30" y="1847" width="44.0" height="17" rx="8.5" fill="#0369a1" stroke="#0369a1" stroke-width="0"/>
+<text x="52.0" y="1859.5" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#fff" font-weight="700" text-anchor="middle">route</text>
+<text x="80.0" y="1860" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="12" fill="#1f2328" font-weight="400" text-anchor="start">주소 찾기 (urls.py)</text>
+<rect x="222.60000000000002" y="1847" width="44.0" height="17" rx="8.5" fill="#b91c1c" stroke="#b91c1c" stroke-width="0"/>
+<text x="244.60000000000002" y="1859.5" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#fff" font-weight="700" text-anchor="middle">guard</text>
+<text x="272.6" y="1860" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="12" fill="#1f2328" font-weight="400" text-anchor="start">접근 통제</text>
+<rect x="349.20000000000005" y="1847" width="36.8" height="17" rx="8.5" fill="#b45309" stroke="#b45309" stroke-width="0"/>
+<text x="367.6" y="1859.5" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#fff" font-weight="700" text-anchor="middle">view</text>
+<text x="392.00000000000006" y="1860" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="12" fill="#1f2328" font-weight="400" text-anchor="start">뷰 실행 (views.py)</text>
+<rect x="529.2" y="1847" width="36.8" height="17" rx="8.5" fill="#0f766e" stroke="#0f766e" stroke-width="0"/>
+<text x="547.6" y="1859.5" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#fff" font-weight="700" text-anchor="middle">data</text>
+<text x="572.0" y="1860" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="12" fill="#1f2328" font-weight="400" text-anchor="start">DB 읽기·쓰기 (models.py)</text>
+<rect x="747.6000000000001" y="1847" width="29.6" height="17" rx="8.5" fill="#4d7c0f" stroke="#4d7c0f" stroke-width="0"/>
+<text x="762.4000000000001" y="1859.5" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="11" fill="#fff" font-weight="700" text-anchor="middle">tpl</text>
+<text x="783.2000000000002" y="1860" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="12" fill="#1f2328" font-weight="400" text-anchor="start">화면 만들기 (templates)</text>
+<text x="30" y="1893" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-size="13" fill="#7a5c00" font-weight="700" text-anchor="start">직원은 /admin/ 과 현황판에서 입력하고, 아이와 학부모는 공개 페이지에서 본다. 쓰기가 일어나는 곳은 그 셋뿐이다.</text>
+</svg>

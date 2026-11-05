@@ -1,0 +1,28 @@
+{% extends 'center/base.html' %}
+{% block title %}출결 체크{% endblock %}
+{% block content %}
+<h1>출결 체크</h1>
+<p class="lead">자기 칸을 <strong>누르거나</strong>, 번호를 치고 <strong>엔터</strong>. 올 때 한 번, 갈 때 한 번.</p>
+
+<form method="post" class="numpad">{% csrf_token %}
+  <input type="text" inputmode="numeric" name="number" autofocus autocomplete="off" placeholder="번호">
+  <button type="submit">확인</button>
+</form>
+
+{% if message %}<p class="toast">{{ message }}</p>{% endif %}
+
+<form method="post" class="tiles">{% csrf_token %}
+  {% for child, rec in children %}
+    <button type="submit" name="child" value="{{ child.pk }}"
+            class="tile {% if rec.check_out %}out{% elif rec.check_in %}in{% else %}none{% endif %}">
+      <span class="num">{{ child.number }}</span>
+      <span class="who">{{ child.name }}</span>
+      <span class="when">
+        {% if rec.check_out %}퇴실 {{ rec.check_out|time:'H:i' }}
+        {% elif rec.check_in %}입실 {{ rec.check_in|time:'H:i' }}
+        {% else %}미입실{% endif %}
+      </span>
+    </button>
+  {% empty %}<p class="empty">등록된 아동이 없습니다. 관리자 페이지에서 추가하세요.</p>{% endfor %}
+</form>
+{% endblock %}

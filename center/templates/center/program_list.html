@@ -1,0 +1,15 @@
+{% extends 'center/base.html' %}
+{% block title %}프로그램{% endblock %}
+{% block content %}
+<h1>프로그램 안내</h1>
+<div class="cards">
+  {% for p in programs %}
+  <article class="card">
+    <h2>{{ p.name }}</h2>
+    {% if p.target %}<p class="meta">대상 · {{ p.target }}</p>{% endif %}
+    {% if p.schedule %}<p class="meta">일정 · {{ p.schedule }}</p>{% endif %}
+    <p>{{ p.body|linebreaksbr }}</p>
+  </article>
+  {% empty %}<p class="empty">등록된 프로그램이 없습니다.</p>{% endfor %}
+</div>
+{% endblock %}

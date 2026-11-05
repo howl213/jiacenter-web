@@ -1,0 +1,53 @@
+{% extends 'center/base.html' %}
+{% block title %}출결 현황판{% endblock %}
+{% block content %}
+<h1>출결 현황판</h1>
+
+<nav class="datenav">
+  <a href="?date={{ prev|date:'Y-m-d' }}">◀ 어제</a>
+  <form method="get"><input type="date" name="date" value="{{ date|date:'Y-m-d' }}" onchange="this.form.submit()"></form>
+  <a href="?date={{ next|date:'Y-m-d' }}">내일 ▶</a>
+  <a class="more" href="{% url 'export' %}?month={{ month }}">{{ month }} 내보내기 (CSV)</a>
+</nav>
+
+{% if unclosed %}
+<section class="warn">
+  <strong>퇴실 기록이 없는 날</strong>
+  <ul>{% for a in unclosed %}<li><a href="?date={{ a.date|date:'Y-m-d' }}">{{ a.date }} {{ a.child }}</a></li>{% endfor %}</ul>
+  <p>확인 후 아래에서 직접 입력하세요. 추정 시간은 자동으로 채우지 않습니다.</p>
+</section>
+{% endif %}
+
+<table class="board">
+  <thead><tr><th>번호</th><th>이름</th><th>입실</th><th>퇴실</th><th>사유</th><th>비고</th><th></th></tr></thead>
+  <tbody>
+  {% for child, rec in children %}
+    <tr>
+      <td>{{ child.number }}</td>
+      <td>{{ child.name }}</td>
+      <td colspan="5">
+        <form method="post" class="rowform">{% csrf_token %}
+          <input type="hidden" name="child" value="{{ child.pk }}">
+          <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">
+          <input type="time" name="check_in" value="{{ rec.check_in|time:'H:i' }}">
+          <input type="time" name="check_out" value="{{ rec.check_out|time:'H:i' }}">
+          <select name="status">
+            {% for v, label in statuses %}
+              <option value="{{ v }}" {% if rec.status == v %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <input type="text" name="note" value="{{ rec.note|default:'' }}" placeholder="비고">
+          <button type="submit">저장</button>
+          {% if not rec.check_out %}
+            <button type="submit" name="toggle" value="1" class="ghost">
+              {% if rec.check_in %}지금 퇴실{% else %}지금 입실{% endif %}
+            </button>
+          {% endif %}
+        </form>
+      </td>
+    </tr>
+  {% empty %}<tr><td colspan="7" class="empty">등록된 아동이 없습니다.</td></tr>{% endfor %}
+  </tbody>
+</table>
+<p><a class="more" href="/admin/center/attendance/">전체 기록 보기 (관리자) →</a></p>
+{% endblock %}
