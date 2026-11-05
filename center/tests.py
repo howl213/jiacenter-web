@@ -81,3 +81,14 @@ class BoardTests(TestCase):
         self.assertIn('홍길동', body)
         self.assertIn('14:30', body)
         self.assertNotIn('2026-04', body)
+
+
+class CsvSafetyTests(TestCase):
+    def test_formula_is_neutralised(self):
+        from .views import _csv_safe
+        # 엑셀이 수식으로 실행하는 네 가지 시작 문자
+        for bad in ['=1+1', '+1', '-1', '@SUM(A1)']:
+            self.assertTrue(_csv_safe(bad).startswith("'"), bad)
+        # 평범한 값은 건드리지 않는다
+        self.assertEqual(_csv_safe('병원 진료'), '병원 진료')
+        self.assertEqual(_csv_safe(''), '')
