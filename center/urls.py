@@ -11,4 +11,5 @@ urlpatterns = [
     path('attendance/', views.kiosk, name='kiosk'),
     path('attendance/board/', views.board, name='board'),
     path('attendance/export/', views.export, name='export'),
+    path('my/', views.my, name='my'),
 ]

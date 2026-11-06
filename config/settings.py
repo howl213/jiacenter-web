@@ -23,6 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # 운영에서는 DJANGO_DEBUG=0 으로 끈다. 켜 둔 채 공개하면 에러 화면에 설정과 코드가 그대로 노출된다.
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'my'
+
 DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
 
 # 개발에서만 고정값을 쓰고, 운영에서는 환경변수가 없으면 아예 기동하지 않는다.

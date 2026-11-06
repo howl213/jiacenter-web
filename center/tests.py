@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
 
@@ -16,6 +17,7 @@ class PageTests(TestCase):
 
 class KioskTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.child = Child.objects.create(name='홍길동', number=7, guardian_tel='010-0000-0000')
 
     def post(self, number):
@@ -42,8 +44,104 @@ class KioskTests(TestCase):
         self.assertIn('없는', resp.context['message'])
 
 
+class ThrottleTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        User.objects.create_superuser('staff', 'a@b.c', 'pw')
+
+    def test_kiosk_locks_after_repeated_misses(self):
+        child = Child.objects.create(name='홍길동', number=7)
+        for _ in range(10):
+            self.client.post('/attendance/', {'number': '99'})
+        msg = self.client.post('/attendance/', {'number': '7'}).context['message']
+        self.assertIn('잠시 후', msg)
+        self.assertFalse(Attendance.objects.filter(child=child).exists())
+
+    def test_login_locks_even_correct_password_after_failures(self):
+        for _ in range(5):
+            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
+        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
+        self.assertEqual(resp.status_code, 429)
+
+    def test_other_account_on_same_ip_is_not_locked(self):
+        User.objects.create_user('other', password='pw2', is_staff=True)
+        for _ in range(5):
+            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
+        resp = self.client.post('/admin/login/', {'username': 'other', 'password': 'pw2'})
+        self.assertEqual(resp.status_code, 302)
+
+    def test_success_resets_the_count(self):
+        for _ in range(4):
+            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
+        self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
+        self.client.logout()
+        for _ in range(4):
+            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
+        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
+        self.assertEqual(resp.status_code, 302)
+
+    def test_changing_usernames_hits_the_ip_limit(self):
+        for i in range(30):
+            self.client.post('/admin/login/', {'username': f'guess{i}', 'password': 'x'})
+        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
+        self.assertEqual(resp.status_code, 429)
+
+    def test_login_still_works_before_limit(self):
+        for _ in range(4):
+            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
+        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
+        self.assertEqual(resp.status_code, 302)
+
+
+class GuardianTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.mom = User.objects.create_user('mom', password='pw1')
+        self.dad = User.objects.create_user('dad', password='pw2')
+        self.mine = Child.objects.create(name='내아이', number=1, guardian=self.mom)
+        self.other = Child.objects.create(name='남의아이', number=2, guardian=self.dad)
+        today = timezone.localdate()
+        Attendance.objects.create(child=self.mine, date=today, status='출석', note='병원비밀메모')
+        Attendance.objects.create(child=self.other, date=today, status='결석')
+
+    def test_my_requires_login(self):
+        resp = self.client.get('/my/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.startswith('/login/'))
+
+    def test_guardian_login_goes_to_my(self):
+        resp = self.client.post('/login/', {'username': 'mom', 'password': 'pw1'})
+        self.assertRedirects(resp, '/my/', fetch_redirect_response=False)
+
+    def test_sees_only_own_child_and_no_staff_note(self):
+        self.client.login(username='mom', password='pw1')
+        body = self.client.get('/my/').content.decode()
+        self.assertIn('내아이', body)
+        self.assertNotIn('남의아이', body)
+        self.assertNotIn('병원비밀메모', body)
+
+    def test_guardian_without_child_sees_empty_message(self):
+        User.objects.create_user('nobody', password='pw3')
+        self.client.login(username='nobody', password='pw3')
+        self.assertIn('연결된 아이가 없습니다', self.client.get('/my/').content.decode())
+
+    def test_guardian_cannot_open_staff_pages(self):
+        self.client.login(username='mom', password='pw1')
+        for url in ['/attendance/board/', '/attendance/export/']:
+            resp = self.client.get(url)
+            self.assertEqual(resp.status_code, 302, url)
+            self.assertIn('/admin/login/', resp.url, url)
+
+    def test_guardian_login_is_throttled_too(self):
+        for _ in range(5):
+            self.client.post('/login/', {'username': 'mom', 'password': 'wrong'})
+        resp = self.client.post('/login/', {'username': 'mom', 'password': 'pw1'})
+        self.assertEqual(resp.status_code, 429)
+
+
 class BoardTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.child = Child.objects.create(name='홍길동', number=7, code='27421',
                                           guardian_tel='010-0000-0000')
         User.objects.create_superuser('staff', 'a@b.c', 'pw')
