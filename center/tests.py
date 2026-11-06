@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Attendance, CenterInfo, Child, NotifyLog
+from .models import Attendance, AttendanceLog, CenterInfo, Child, NotifyLog
 
 
 class PageTests(TestCase):
@@ -37,6 +37,66 @@ class CenterInfoTests(TestCase):
         self.assertEqual(self.client.get('/admin/center/centerinfo/add/').status_code, 403)
         row = CenterInfo.objects.get()
         self.assertEqual(self.client.get(f'/admin/center/centerinfo/{row.pk}/delete/').status_code, 403)
+
+
+class AttendanceLogTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.child = Child.objects.create(name='홍길동', number=7)
+        self.staff = User.objects.create_superuser('staff', 'a@b.c', 'pw')
+
+    def test_kiosk_in_and_out_are_logged_without_a_user(self):
+        self.client.post('/attendance/', {'number': '7'})
+        self.client.post('/attendance/', {'number': '7'})
+        logs = list(AttendanceLog.objects.order_by('id'))
+        self.assertEqual(len(logs), 2)
+        self.assertEqual(logs[0].before, '')
+        self.assertIn('퇴실 -', logs[0].after)
+        self.assertNotIn('퇴실 -', logs[1].after)
+        self.assertTrue(all(l.via == 'kiosk' and l.by is None for l in logs))
+
+    def test_board_edit_logs_before_after_and_who(self):
+        self.client.login(username='staff', password='pw')
+        data = {'child': self.child.pk, 'date': '2026-03-14', 'check_in': '14:30', 'status': '출석'}
+        self.client.post('/attendance/board/', data)
+        self.client.post('/attendance/board/', {**data, 'check_in': '15:00', 'status': '조퇴'})
+        last = AttendanceLog.objects.first()
+        self.assertIn('입실 14:30', last.before)
+        self.assertIn('입실 15:00', last.after)
+        self.assertIn('조퇴', last.after)
+        self.assertEqual(last.by, self.staff)
+        self.assertEqual(last.via, 'staff')
+
+    def test_unchanged_save_leaves_no_log(self):
+        self.client.login(username='staff', password='pw')
+        data = {'child': self.child.pk, 'date': '2026-03-14', 'check_in': '14:30'}
+        self.client.post('/attendance/board/', data)
+        before = AttendanceLog.objects.count()
+        self.client.post('/attendance/board/', data)
+        self.assertEqual(AttendanceLog.objects.count(), before)
+
+    def test_admin_edit_is_logged(self):
+        rec = Attendance.objects.create(child=self.child, date='2026-03-14', status='출석')
+        self.client.login(username='staff', password='pw')
+        self.client.post(f'/admin/center/attendance/{rec.pk}/change/', {
+            'child': self.child.pk, 'date': '2026-03-14', 'status': '결석',
+            'source': 'staff', 'note': ''})
+        log = AttendanceLog.objects.get()
+        self.assertIn('출석', log.before)
+        self.assertIn('결석', log.after)
+        self.assertEqual((log.via, log.by), ('admin', self.staff))
+
+    def test_log_is_read_only_and_survives_record_deletion(self):
+        rec = Attendance.objects.create(child=self.child, date='2026-03-14')
+        AttendanceLog.add(rec, '', 'admin', self.staff)
+        self.client.login(username='staff', password='pw')
+        log = AttendanceLog.objects.get()
+        self.assertEqual(self.client.get('/admin/center/attendancelog/add/').status_code, 403)
+        self.assertEqual(self.client.get(f'/admin/center/attendancelog/{log.pk}/delete/').status_code, 403)
+        rec.delete()
+        log.refresh_from_db()
+        self.assertIsNone(log.attendance)
+        self.assertIn('홍길동', log.label)
 
 
 class KioskTests(TestCase):
