@@ -167,7 +167,7 @@
 | 검색 패턴 | 결과 |
 |---|---|
 | `.raw()`, `.extra()`, 원시 SQL | 없음 |
-| `mark_safe`, `\|safe` 필터 | 없음 |
+| `mark_safe`, `\|safe` 필터 | **1곳** — `center/templatetags/notice_format.py` (2026-11-06 공지 서식 추가). 전체를 `escape` 한 뒤 고정 태그만 끼우며 HTML·링크·이미지는 지원하지 않는다. `escape` 를 뺀 코드에서 XSS 테스트가 실패함을 확인했다. 이 줄이 나머지 점검 결과(없음)의 유일한 예외다 |
 | `eval`, `exec`, `pickle` | 없음 |
 | `os.system`, `subprocess` | 없음 |
 

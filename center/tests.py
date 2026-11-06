@@ -15,6 +15,37 @@ class PageTests(TestCase):
         self.assertEqual(self.client.get('/attendance/board/').status_code, 302)
 
 
+class NoticeFormatTests(TestCase):
+    def render(self, body):
+        n = Notice.objects.create(title='t', body=body)
+        return self.client.get(f'/notices/{n.pk}/').content.decode()
+
+    def test_supported_formatting(self):
+        html = self.render('## 소제목\n\n**중요** 안내입니다\n둘째 줄\n\n- 가\n- 나')
+        self.assertIn('<h3>소제목</h3>', html)
+        self.assertIn('<p><strong>중요</strong> 안내입니다<br>둘째 줄</p>', html)
+        self.assertIn('<ul><li>가</li><li>나</li></ul>', html)
+
+    def test_html_in_the_body_is_shown_as_text(self):
+        html = self.render('<script>alert(1)</script> <img src=x onerror=alert(2)>')
+        self.assertNotIn('<script>alert(1)', html)
+        self.assertNotIn('<img src=x', html)
+        self.assertIn('&lt;script&gt;', html)
+
+    def test_html_inside_bold_and_list_and_heading_is_escaped(self):
+        html = self.render('**<img src=x onerror=1>**\n- <b>x</b>\n## <i>y</i>')
+        for raw in ['<img src=x', '<b>x</b>', '<i>y</i>']:
+            self.assertNotIn(raw, html)
+
+    def test_links_are_not_turned_into_anchors(self):
+        html = self.render('[클릭](javascript:alert(1)) https://example.com')
+        self.assertNotIn('<a href="javascript', html)
+        self.assertNotIn('<a href="https://example.com', html)
+
+    def test_empty_body_does_not_break(self):
+        self.assertEqual(self.render('').count('<h1>'), 1)
+
+
 class NoticeSearchTests(TestCase):
     def setUp(self):
         Notice.objects.create(title='봄 소풍 안내', body='4월에 공원으로 갑니다')

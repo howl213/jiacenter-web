@@ -18,6 +18,10 @@ class CenterInfoAdmin(admin.ModelAdmin):
 class NoticeAdmin(admin.ModelAdmin):
     list_display = ['title', 'pinned', 'created_at']
     list_editable = ['pinned']
+    fieldsets = [(None, {
+        'fields': ['title', 'body', 'pinned'],
+        'description': '본문 서식: **굵게** · 줄 맨 앞에 "## " 은 소제목 · "- " 는 목록 · 빈 줄은 문단 구분. '
+                       'HTML 과 링크는 쓸 수 없고 글자 그대로 보입니다.'})]
 
 
 @admin.register(Program)
