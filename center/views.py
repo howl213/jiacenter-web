@@ -16,9 +16,12 @@
 """
 
 import csv
+import hashlib
 from datetime import datetime, timedelta
 
+from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpResponse
@@ -52,6 +55,46 @@ def program_list(request):
 def about(request):
     # 보여줄 내용이 전부 settings.CENTER 에서 오므로 넘겨줄 값이 없다(context processor 담당).
     return render(request, 'center/about.html')
+
+
+# 시도 횟수 제한. 키오스크는 번호를 못 찾은 횟수, 로그인은 실패한 횟수를 센다.
+KIOSK_MAX_MISSES, KIOSK_WINDOW = 10, 60            # 1분에 10번 틀리면 1분간 잠금
+LOGIN_MAX_FAILS, LOGIN_WINDOW = 5, 5 * 60          # 같은 IP 에서 같은 아이디로 5분에 5번
+LOGIN_IP_MAX_FAILS, LOGIN_IP_WINDOW = 30, 15 * 60  # 아이디를 바꿔가며 찍어도 IP 하나당 15분에 30번
+
+
+def _blocked(key, limit):
+    return cache.get(key, 0) >= limit
+
+
+def _count_failure(key, window):
+    # shortcut: 프로세스 메모리 캐시 + REMOTE_ADDR 라서 서버 여러 대/워커면 한도가 그 수만큼 늘고,
+    # 프록시 뒤에서는 모두 같은 IP 로 보인다. 배포 시 공유 캐시와 실제 클라이언트 IP 로 바꾼다.
+    cache.add(key, 0, window)
+    cache.incr(key)
+
+
+def login_limited(request):
+    """admin 로그인 화면을 그대로 쓰되, 틀린 시도가 쌓이면 맞는 비밀번호도 잠시 막는다.
+
+    IP 만 보면 공유기 뒤에서 한 명의 오타가 모두를 막는다. 그렇다고 아이디만 보면 남이
+    일부러 틀려서 관리자를 잠글 수 있다. 그래서 (IP, 아이디) 쌍을 잠그고, 아이디를 바꿔가며
+    찍는 경우는 IP 전체 한도로 막는다.
+    """
+    ip = request.META.get('REMOTE_ADDR')
+    name = hashlib.sha1(request.POST.get('username', '').strip().lower().encode()).hexdigest()
+    user_key, ip_key = f'login:{ip}:{name}', f'login-ip:{ip}'
+    if request.method == 'POST' and (_blocked(user_key, LOGIN_MAX_FAILS)
+                                     or _blocked(ip_key, LOGIN_IP_MAX_FAILS)):
+        return HttpResponse('로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.', status=429)
+    response = admin.site.login(request)
+    if request.method == 'POST':
+        if response.status_code == 200:      # 실패하면 폼이 다시 그려져 200
+            _count_failure(user_key, LOGIN_WINDOW)
+            _count_failure(ip_key, LOGIN_IP_WINDOW)
+        else:                                # 성공하면 302 — 이 아이디의 실패 기록을 지운다
+            cache.delete(user_key)
+    return response
 
 
 def _pk(value):
@@ -137,9 +180,15 @@ def kiosk(request):
     """
     message = None
     if request.method == 'POST':
-        child = _find_child(request.POST.get('child'), request.POST.get('number'))
-        # 못 찾으면 DB를 전혀 건드리지 않고 안내만 한다.
-        message = _toggle(child, Attendance.BY_KIOSK) if child else '없는 번호입니다'
+        kiosk_key = f'kiosk:{request.META.get("REMOTE_ADDR")}'
+        if _blocked(kiosk_key, KIOSK_MAX_MISSES):
+            message = '잠시 후 다시 눌러 주세요'
+        else:
+            child = _find_child(request.POST.get('child'), request.POST.get('number'))
+            # 못 찾으면 DB를 전혀 건드리지 않고 안내만 한다.
+            message = _toggle(child, Attendance.BY_KIOSK) if child else '없는 번호입니다'
+            if not child:
+                _count_failure(kiosk_key, KIOSK_WINDOW)
 
     # 여기부터는 GET/POST 공통 — 처리 후의 최신 상태로 명단을 다시 그린다.
     today = timezone.localdate()

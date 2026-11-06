@@ -17,7 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from center.views import login_limited
+
 urlpatterns = [
     path('', include('center.urls')),
+    path('admin/login/', login_limited),  # admin.site.urls 보다 먼저 와야 가로챈다
     path('admin/', admin.site.urls),
 ]

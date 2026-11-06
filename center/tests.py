@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
 
@@ -16,6 +17,7 @@ class PageTests(TestCase):
 
 class KioskTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.child = Child.objects.create(name='홍길동', number=7, guardian_tel='010-0000-0000')
 
     def post(self, number):
@@ -42,8 +44,58 @@ class KioskTests(TestCase):
         self.assertIn('없는', resp.context['message'])
 
 
+class ThrottleTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        User.objects.create_superuser('staff', 'a@b.c', 'pw')
+
+    def test_kiosk_locks_after_repeated_misses(self):
+        child = Child.objects.create(name='홍길동', number=7)
+        for _ in range(10):
+            self.client.post('/attendance/', {'number': '99'})
+        msg = self.client.post('/attendance/', {'number': '7'}).context['message']
+        self.assertIn('잠시 후', msg)
+        self.assertFalse(Attendance.objects.filter(child=child).exists())
+
+    def test_login_locks_even_correct_password_after_failures(self):
+        for _ in range(5):
+            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
+        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
+        self.assertEqual(resp.status_code, 429)
+
+    def test_other_account_on_same_ip_is_not_locked(self):
+        User.objects.create_user('other', password='pw2', is_staff=True)
+        for _ in range(5):
+            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
+        resp = self.client.post('/admin/login/', {'username': 'other', 'password': 'pw2'})
+        self.assertEqual(resp.status_code, 302)
+
+    def test_success_resets_the_count(self):
+        for _ in range(4):
+            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
+        self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
+        self.client.logout()
+        for _ in range(4):
+            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
+        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
+        self.assertEqual(resp.status_code, 302)
+
+    def test_changing_usernames_hits_the_ip_limit(self):
+        for i in range(30):
+            self.client.post('/admin/login/', {'username': f'guess{i}', 'password': 'x'})
+        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
+        self.assertEqual(resp.status_code, 429)
+
+    def test_login_still_works_before_limit(self):
+        for _ in range(4):
+            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
+        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
+        self.assertEqual(resp.status_code, 302)
+
+
 class BoardTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.child = Child.objects.create(name='홍길동', number=7, code='27421',
                                           guardian_tel='010-0000-0000')
         User.objects.create_superuser('staff', 'a@b.c', 'pw')
