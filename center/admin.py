@@ -1,6 +1,17 @@
 from django.contrib import admin
 
-from .models import Attendance, Child, NotifyLog, Notice, Program
+from .models import Attendance, CenterInfo, Child, NotifyLog, Notice, Program
+
+
+@admin.register(CenterInfo)
+class CenterInfoAdmin(admin.ModelAdmin):
+    list_display = ['name', 'tel', 'address', 'hours']
+
+    def has_add_permission(self, request):
+        return not CenterInfo.objects.exists()   # 한 행만 쓴다 — 지우고 새로 만들 일도 없다
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Notice)

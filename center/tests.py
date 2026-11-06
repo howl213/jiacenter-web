@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Attendance, Child, NotifyLog
+from .models import Attendance, CenterInfo, Child, NotifyLog
 
 
 class PageTests(TestCase):
@@ -13,6 +13,30 @@ class PageTests(TestCase):
 
     def test_board_requires_login(self):
         self.assertEqual(self.client.get('/attendance/board/').status_code, 302)
+
+
+class CenterInfoTests(TestCase):
+    def test_seeded_from_settings_by_migration(self):
+        self.assertEqual(CenterInfo.objects.count(), 1)
+        self.assertIn('지역아동센터', self.client.get('/').content.decode())
+
+    def test_edit_in_db_shows_on_pages(self):
+        CenterInfo.objects.update(name='새이름센터', tel='031-111-2222')
+        for url in ['/', '/about/']:
+            body = self.client.get(url).content.decode()
+            self.assertIn('새이름센터', body, url)
+            self.assertIn('031-111-2222', body, url)
+
+    def test_falls_back_to_settings_when_no_row(self):
+        CenterInfo.objects.all().delete()
+        self.assertIn('지역아동센터', self.client.get('/').content.decode())
+
+    def test_admin_cannot_add_a_second_row_or_delete(self):
+        User.objects.create_superuser('boss', 'a@b.c', 'pw')
+        self.client.login(username='boss', password='pw')
+        self.assertEqual(self.client.get('/admin/center/centerinfo/add/').status_code, 403)
+        row = CenterInfo.objects.get()
+        self.assertEqual(self.client.get(f'/admin/center/centerinfo/{row.pk}/delete/').status_code, 403)
 
 
 class KioskTests(TestCase):

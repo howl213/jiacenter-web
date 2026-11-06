@@ -3,6 +3,24 @@ from django.db import models
 from django.utils import timezone
 
 
+class CenterInfo(models.Model):
+    """센터 이름·전화·주소·운영시간. 직원이 admin 에서 고치면 모든 화면에 반영된다.
+
+    행은 하나만 쓴다(admin 에서 두 번째 행은 못 만들게 막았다).
+    값을 바꾸려고 코드를 고치지 않아도 되게 하는 것이 목적이다.
+    """
+    name = models.CharField('센터 이름', max_length=50)
+    tel = models.CharField('대표 전화', max_length=30)
+    address = models.CharField('주소', max_length=200)
+    hours = models.CharField('운영시간', max_length=100)
+
+    class Meta:
+        verbose_name = verbose_name_plural = '센터 정보'
+
+    def __str__(self):
+        return self.name
+
+
 class Notice(models.Model):
     title = models.CharField('제목', max_length=200)
     body = models.TextField('내용')

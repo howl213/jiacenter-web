@@ -54,7 +54,7 @@ def program_list(request):
 
 
 def about(request):
-    # 보여줄 내용이 전부 settings.CENTER 에서 오므로 넘겨줄 값이 없다(context processor 담당).
+    # 보여줄 내용이 전부 센터 정보(DB, 없으면 settings.CENTER)에서 오므로 넘겨줄 값이 없다(context processor 담당).
     return render(request, 'center/about.html')
 
 
