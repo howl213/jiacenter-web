@@ -54,6 +54,16 @@ def about(request):
     return render(request, 'center/about.html')
 
 
+def _pk(value):
+    """숫자 문자열이면 정수로, 아니면 None. 외부 입력을 int() 에 바로 넣으면 500 이 난다.
+
+    str.isdigit() 만으로는 '²' 같은 문자가 통과해 int() 에서 터지고,
+    자릿수 제한이 없으면 수천 자리 숫자도 터진다. 그래서 ASCII 와 길이를 함께 본다.
+    """
+    value = value or ''
+    return int(value) if value.isascii() and value.isdigit() and len(value) < 10 else None
+
+
 def _find_child(pk, typed):
     """타일을 눌렀으면 pk로, 숫자를 쳤으면 인식번호 또는 출석번호로 아동을 찾는다.
 
@@ -62,14 +72,14 @@ def _find_child(pk, typed):
     """
     children = Child.objects.filter(active=True)
     if pk:
-        return children.filter(pk=pk).first()
+        return children.filter(pk=_pk(pk)).first()
     typed = (typed or '').strip()
     if not typed:
         return None
     # 출석번호는 정수 칸이라 숫자일 때만 비교 대상에 넣는다.
     cond = Q(code=typed)
-    if typed.isdigit():
-        cond |= Q(number=int(typed))
+    if _pk(typed) is not None:
+        cond |= Q(number=_pk(typed))
     return children.filter(cond).first()
 
 
@@ -166,12 +176,16 @@ def board(request):
     date = _parse_date(request.GET.get('date'), timezone.localdate())
 
     if request.method == 'POST':
-        child = get_object_or_404(Child, pk=request.POST['child'])
+        child = get_object_or_404(Child, pk=_pk(request.POST.get('child')))
         # 날짜는 폼에서 받는다 — 과거 날짜를 보던 중에 저장해도 그 날짜에 기록된다.
         date = _parse_date(request.POST.get('date'), date)
         if 'toggle' in request.POST:
             _toggle(child, Attendance.BY_STAFF, date)
         else:
+            status = request.POST.get('status') or '출석'
+            if status not in dict(Attendance.STATUS):
+                # 선택지 밖의 값은 정산 사유가 될 수 없다. 기록을 만들기 전에 거른다.
+                return redirect(f"{request.path}?date={date}")
             rec, _ = Attendance.objects.get_or_create(
                 child=child, date=date, defaults={'source': Attendance.BY_STAFF})
             try:
@@ -180,7 +194,7 @@ def board(request):
             except ValueError:
                 # 시간 형식이 깨졌으면 아무것도 바꾸지 않는다 — 기존 기록이 더 믿을 만하다.
                 return redirect(f"{request.path}?date={date}")
-            rec.status = request.POST.get('status') or '출석'
+            rec.status = status
             rec.note = request.POST.get('note', '')[:200]
             rec.source = Attendance.BY_STAFF
             rec.save()
