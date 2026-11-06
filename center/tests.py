@@ -34,6 +34,13 @@ class KioskTests(TestCase):
     def test_unknown_number(self):
         self.assertIn('없는', self.post(99))
 
+    def test_malformed_input_is_not_a_server_error(self):
+        # 윗첨자 숫자는 isdigit() 은 True 인데 int() 는 실패한다. 5000자리는 정수 변환 제한에 걸린다.
+        for bad in ['²', '9' * 5000, 'abc']:
+            self.assertIn('없는', self.post(bad))
+        resp = self.client.post('/attendance/', {'child': 'abc'})
+        self.assertIn('없는', resp.context['message'])
+
 
 class BoardTests(TestCase):
     def setUp(self):
@@ -47,6 +54,18 @@ class BoardTests(TestCase):
         self.assertIn('입실', self.client.post('/attendance/', {'number': '27421'}).context['message'])
         # 출석번호로 찾기 — 같은 아이이므로 이번엔 퇴실이 된다
         self.assertIn('퇴실', self.client.post('/attendance/', {'number': '7'}).context['message'])
+
+    def test_status_outside_choices_is_rejected(self):
+        self.client.post('/attendance/board/', {
+            'child': self.child.pk, 'date': '2026-03-14', 'check_in': '09:00', 'status': '아무거나'})
+        self.assertFalse(Attendance.objects.exists())
+        self.client.post('/attendance/board/', {
+            'child': self.child.pk, 'date': '2026-03-14', 'check_in': '09:00', 'status': '병가'})
+        self.assertEqual(Attendance.objects.get().status, '병가')
+
+    def test_board_post_without_valid_child_is_404(self):
+        for data in [{}, {'child': 'abc'}, {'child': '999'}]:
+            self.assertEqual(self.client.post('/attendance/board/', data).status_code, 404, data)
 
     def test_tile_click(self):
         msg = self.client.post('/attendance/', {'child': self.child.pk}).context['message']
