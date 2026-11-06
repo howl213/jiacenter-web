@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -38,6 +39,10 @@ class Child(models.Model):
     # 남매는 뒤에 순번 한 자리를 붙인다(2742 / 27421 / 27422).
     code = models.CharField('인식번호', max_length=10, unique=True, null=True, blank=True)
     guardian_tel = models.CharField('보호자 연락처', max_length=20, blank=True)
+    # 보호자 로그인 계정. /my/ 가 이 연결로 "내 아이"만 보여준다.
+    guardian = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                                 on_delete=models.SET_NULL, related_name='children',
+                                 verbose_name='보호자 계정')
     active = models.BooleanField('재원', default=True)
 
     class Meta:

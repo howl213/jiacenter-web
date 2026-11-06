@@ -17,7 +17,7 @@ class ProgramAdmin(admin.ModelAdmin):
 
 @admin.register(Child)
 class ChildAdmin(admin.ModelAdmin):
-    list_display = ['number', 'name', 'code', 'guardian_tel', 'active']
+    list_display = ['number', 'name', 'code', 'guardian_tel', 'guardian', 'active']
     list_editable = ['code']
     list_filter = ['active']
     search_fields = ['name', 'code']

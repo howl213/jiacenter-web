@@ -1,0 +1,19 @@
+{% extends 'center/base.html' %}
+{% block title %}내 아이 출결{% endblock %}
+{% block content %}
+<h1>내 아이 출결 <small>(최근 30일)</small></h1>
+{% for child, records in rows %}
+  <h2>{{ child.name }}</h2>
+  <table>
+    <tr><th>날짜</th><th>입실</th><th>퇴실</th><th>사유</th></tr>
+    {% for r in records %}
+      <tr><td>{{ r.date|date:'m.d' }}</td>
+          <td>{{ r.check_in|time:'H:i'|default:'-' }}</td>
+          <td>{{ r.check_out|time:'H:i'|default:'-' }}</td>
+          <td>{{ r.status }}</td></tr>
+    {% empty %}<tr><td colspan="4" class="empty">기록이 없습니다.</td></tr>{% endfor %}
+  </table>
+{% empty %}
+  <p class="empty">연결된 아이가 없습니다. 센터에 문의해 주세요.</p>
+{% endfor %}
+{% endblock %}

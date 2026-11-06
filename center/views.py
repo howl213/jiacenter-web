@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -74,27 +75,29 @@ def _count_failure(key, window):
     cache.incr(key)
 
 
-def login_limited(request):
-    """admin 로그인 화면을 그대로 쓰되, 틀린 시도가 쌓이면 맞는 비밀번호도 잠시 막는다.
+def limited_login(login_view):
+    """로그인 화면을 그대로 쓰되, 틀린 시도가 쌓이면 맞는 비밀번호도 잠시 막는다.
 
     IP 만 보면 공유기 뒤에서 한 명의 오타가 모두를 막는다. 그렇다고 아이디만 보면 남이
     일부러 틀려서 관리자를 잠글 수 있다. 그래서 (IP, 아이디) 쌍을 잠그고, 아이디를 바꿔가며
-    찍는 경우는 IP 전체 한도로 막는다.
+    찍는 경우는 IP 전체 한도로 막는다. 직원(admin) 로그인과 보호자 로그인이 함께 쓴다.
     """
-    ip = request.META.get('REMOTE_ADDR')
-    name = hashlib.sha1(request.POST.get('username', '').strip().lower().encode()).hexdigest()
-    user_key, ip_key = f'login:{ip}:{name}', f'login-ip:{ip}'
-    if request.method == 'POST' and (_blocked(user_key, LOGIN_MAX_FAILS)
-                                     or _blocked(ip_key, LOGIN_IP_MAX_FAILS)):
-        return HttpResponse('로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.', status=429)
-    response = admin.site.login(request)
-    if request.method == 'POST':
-        if response.status_code == 200:      # 실패하면 폼이 다시 그려져 200
-            _count_failure(user_key, LOGIN_WINDOW)
-            _count_failure(ip_key, LOGIN_IP_WINDOW)
-        else:                                # 성공하면 302 — 이 아이디의 실패 기록을 지운다
-            cache.delete(user_key)
-    return response
+    def wrapped(request):
+        ip = request.META.get('REMOTE_ADDR')
+        name = hashlib.sha1(request.POST.get('username', '').strip().lower().encode()).hexdigest()
+        user_key, ip_key = f'login:{ip}:{name}', f'login-ip:{ip}'
+        if request.method == 'POST' and (_blocked(user_key, LOGIN_MAX_FAILS)
+                                         or _blocked(ip_key, LOGIN_IP_MAX_FAILS)):
+            return HttpResponse('로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.', status=429)
+        response = login_view(request)
+        if request.method == 'POST':
+            if response.status_code == 200:      # 실패하면 폼이 다시 그려져 200
+                _count_failure(user_key, LOGIN_WINDOW)
+                _count_failure(ip_key, LOGIN_IP_WINDOW)
+            else:                                # 성공하면 302 — 이 아이디의 실패 기록을 지운다
+                cache.delete(user_key)
+        return response
+    return wrapped
 
 
 def _pk(value):
@@ -290,3 +293,20 @@ def export(request):
             a.status, a.get_source_display(), _csv_safe(a.note),
         ])
     return response
+
+
+@login_required
+def my(request):
+    """보호자가 보는 \"내 아이\" 출결. 최근 30일.
+
+    URL 에 아동 id 를 받지 않고 로그인한 사용자에게 연결된 아동만 조회한다.
+    남의 아이가 보이지 않게 하는 것은 아래 filter(guardian=...) 한 줄이다.
+    비고(note)는 직원 메모(병원 등)라 보호자 화면에 내지 않는다.
+    """
+    children = Child.objects.filter(active=True, guardian=request.user)
+    since = timezone.localdate() - timedelta(days=30)
+    records = Attendance.objects.filter(child__in=children, date__gte=since)
+    by_child = {c.id: [] for c in children}
+    for r in records:
+        by_child[r.child_id].append(r)
+    return render(request, 'center/my.html', {'rows': [(c, by_child[c.id]) for c in children]})

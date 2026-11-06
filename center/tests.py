@@ -93,6 +93,52 @@ class ThrottleTests(TestCase):
         self.assertEqual(resp.status_code, 302)
 
 
+class GuardianTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.mom = User.objects.create_user('mom', password='pw1')
+        self.dad = User.objects.create_user('dad', password='pw2')
+        self.mine = Child.objects.create(name='내아이', number=1, guardian=self.mom)
+        self.other = Child.objects.create(name='남의아이', number=2, guardian=self.dad)
+        today = timezone.localdate()
+        Attendance.objects.create(child=self.mine, date=today, status='출석', note='병원비밀메모')
+        Attendance.objects.create(child=self.other, date=today, status='결석')
+
+    def test_my_requires_login(self):
+        resp = self.client.get('/my/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.startswith('/login/'))
+
+    def test_guardian_login_goes_to_my(self):
+        resp = self.client.post('/login/', {'username': 'mom', 'password': 'pw1'})
+        self.assertRedirects(resp, '/my/', fetch_redirect_response=False)
+
+    def test_sees_only_own_child_and_no_staff_note(self):
+        self.client.login(username='mom', password='pw1')
+        body = self.client.get('/my/').content.decode()
+        self.assertIn('내아이', body)
+        self.assertNotIn('남의아이', body)
+        self.assertNotIn('병원비밀메모', body)
+
+    def test_guardian_without_child_sees_empty_message(self):
+        User.objects.create_user('nobody', password='pw3')
+        self.client.login(username='nobody', password='pw3')
+        self.assertIn('연결된 아이가 없습니다', self.client.get('/my/').content.decode())
+
+    def test_guardian_cannot_open_staff_pages(self):
+        self.client.login(username='mom', password='pw1')
+        for url in ['/attendance/board/', '/attendance/export/']:
+            resp = self.client.get(url)
+            self.assertEqual(resp.status_code, 302, url)
+            self.assertIn('/admin/login/', resp.url, url)
+
+    def test_guardian_login_is_throttled_too(self):
+        for _ in range(5):
+            self.client.post('/login/', {'username': 'mom', 'password': 'wrong'})
+        resp = self.client.post('/login/', {'username': 'mom', 'password': 'pw1'})
+        self.assertEqual(resp.status_code, 429)
+
+
 class BoardTests(TestCase):
     def setUp(self):
         cache.clear()
