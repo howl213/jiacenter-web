@@ -2,18 +2,22 @@
 {% block title %}공지사항{% endblock %}
 {% block content %}
 <h1>공지사항</h1>
+<form method="get" class="search">
+  <input type="search" name="q" value="{{ q }}" placeholder="제목·내용 검색" maxlength="100">
+  <button type="submit">검색</button>
+</form>
 <ul class="list">
   {% for n in page %}
     <li>{% if n.pinned %}<span class="pin">고정</span>{% endif %}
         <a href="{% url 'notice_detail' n.pk %}">{{ n.title }}</a>
         <time>{{ n.created_at|date:'Y.m.d' }}</time></li>
-  {% empty %}<li class="empty">등록된 공지가 없습니다.</li>{% endfor %}
+  {% empty %}<li class="empty">{% if q %}'{{ q }}' 에 해당하는 공지가 없습니다.{% else %}등록된 공지가 없습니다.{% endif %}</li>{% endfor %}
 </ul>
 {% if page.has_other_pages %}
 <nav class="pager">
-  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">이전</a>{% endif %}
+  {% if page.has_previous %}<a href="?q={{ q|urlencode }}&amp;page={{ page.previous_page_number }}">이전</a>{% endif %}
   <span>{{ page.number }} / {{ page.paginator.num_pages }}</span>
-  {% if page.has_next %}<a href="?page={{ page.next_page_number }}">다음</a>{% endif %}
+  {% if page.has_next %}<a href="?q={{ q|urlencode }}&amp;page={{ page.next_page_number }}">다음</a>{% endif %}
 </nav>
 {% endif %}
 {% endblock %}

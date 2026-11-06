@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Attendance, AttendanceLog, CenterInfo, Child, NotifyLog
+from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog
 
 
 class PageTests(TestCase):
@@ -13,6 +13,49 @@ class PageTests(TestCase):
 
     def test_board_requires_login(self):
         self.assertEqual(self.client.get('/attendance/board/').status_code, 302)
+
+
+class NoticeSearchTests(TestCase):
+    def setUp(self):
+        Notice.objects.create(title='봄 소풍 안내', body='4월에 공원으로 갑니다')
+        Notice.objects.create(title='급식 안내', body='이번 주 메뉴는 비빔밥')
+
+    def get(self, q):
+        return self.client.get('/notices/', {'q': q}).content.decode()
+
+    def test_searches_title_and_body(self):
+        self.assertIn('봄 소풍 안내', self.get('소풍'))
+        self.assertNotIn('급식 안내', self.get('소풍'))
+        self.assertIn('급식 안내', self.get('비빔밥'))
+
+    def test_no_match_and_empty_query(self):
+        self.assertIn('해당하는 공지가 없습니다', self.get('없는말'))
+        body = self.get('')
+        self.assertIn('봄 소풍 안내', body)
+        self.assertIn('급식 안내', body)
+
+    def test_odd_input_is_matched_as_plain_text_not_sql(self):
+        for q in ["' OR '1'='1", '%', '_', '\\', 'a' * 5000]:
+            resp = self.client.get('/notices/', {'q': q})
+            self.assertEqual(resp.status_code, 200, q)
+            self.assertNotIn('봄 소풍 안내', resp.content.decode(), q)
+
+    def test_nul_character_does_not_match_everything(self):
+        # SQLite 의 LIKE 는 NUL 에서 패턴이 끊겨 전부 일치해 버린다. 뺀 뒤 나머지 글자로 찾는다.
+        body = self.get('\x00소풍')
+        self.assertIn('봄 소풍 안내', body)
+        self.assertNotIn('급식 안내', body)
+
+    def test_query_is_escaped_in_the_page(self):
+        body = self.get('<script>alert(1)</script>')
+        self.assertNotIn('<script>alert(1)</script>', body)
+        self.assertIn('&lt;script&gt;', body)
+
+    def test_pager_keeps_the_query(self):
+        for i in range(11):
+            Notice.objects.create(title=f'행사 {i}', body='x')
+        body = self.client.get('/notices/', {'q': '행사'}).content.decode()
+        self.assertIn('?q=%ED%96%89%EC%82%AC&amp;page=2', body)
 
 
 class CenterInfoTests(TestCase):
