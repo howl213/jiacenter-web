@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Attendance, CenterInfo, Child, NotifyLog, Notice, Program
+from .models import Attendance, AttendanceLog, CenterInfo, Child, NotifyLog, Notice, Program
 
 
 @admin.register(CenterInfo)
@@ -38,6 +38,27 @@ class ChildAdmin(admin.ModelAdmin):
 class AttendanceAdmin(admin.ModelAdmin):
     list_display = ['date', 'child', 'check_in', 'check_out', 'status', 'source', 'note']
     list_filter = ['date', 'status', 'source']
+
+    def save_model(self, request, obj, form, change):
+        before = Attendance.objects.get(pk=obj.pk).snapshot() if change else ''
+        super().save_model(request, obj, form, change)
+        AttendanceLog.add(obj, before, 'admin', request.user)
+
+
+@admin.register(AttendanceLog)
+class AttendanceLogAdmin(admin.ModelAdmin):
+    list_display = ['at', 'label', 'via', 'by', 'before', 'after']
+    list_filter = ['via']
+
+    # 이력은 읽기 전용이다. 고치거나 지울 수 있으면 근거가 되지 못한다.
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(NotifyLog)

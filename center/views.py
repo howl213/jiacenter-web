@@ -29,7 +29,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .models import Attendance, Child, Notice, Program
+from .models import Attendance, AttendanceLog, Child, Notice, Program
 from .notify import send_alimtalk
 
 
@@ -129,7 +129,7 @@ def _find_child(pk, typed):
     return children.filter(cond).first()
 
 
-def _toggle(child, source, date=None):
+def _toggle(child, source, date=None, by=None):
     """입실 기록이 없으면 입실, 있으면 퇴실. 이미 퇴실했으면 아무것도 안 바꾼다.
 
     키오스크(아이가 직접)와 현황판(직원이 대신) 두 입구가 모두 이 함수를 부른다.
@@ -156,6 +156,7 @@ def _toggle(child, source, date=None):
 
     # 갈래 1: 방금 만들었다 = 오늘 첫 접촉 = 입실.
     if created:
+        AttendanceLog.add(rec, '', source, by)
         if notify:
             send_alimtalk(child.guardian_tel, 'check_in', name=child.name, time=f'{now:%H:%M}')
         return f'{child.name} 입실 {now:%H:%M}'
@@ -168,8 +169,10 @@ def _toggle(child, source, date=None):
 
     # 갈래 3: 입실만 되어 있다 = 퇴실 처리.
     # update_fields 로 퇴실칸만 저장한다 — 입실 시각이나 source 를 실수로 건드리지 않는다.
+    before = rec.snapshot()
     rec.check_out = now
     rec.save(update_fields=['check_out'])
+    AttendanceLog.add(rec, before, source, by)
     if notify:
         send_alimtalk(child.guardian_tel, 'check_out', name=child.name, time=f'{now:%H:%M}')
     return f'{child.name} 퇴실 {now:%H:%M}'
@@ -232,7 +235,7 @@ def board(request):
         # 날짜는 폼에서 받는다 — 과거 날짜를 보던 중에 저장해도 그 날짜에 기록된다.
         date = _parse_date(request.POST.get('date'), date)
         if 'toggle' in request.POST:
-            _toggle(child, Attendance.BY_STAFF, date)
+            _toggle(child, Attendance.BY_STAFF, date, request.user)
         else:
             status = request.POST.get('status') or '출석'
             if status not in dict(Attendance.STATUS):
@@ -240,6 +243,7 @@ def board(request):
                 return redirect(f"{request.path}?date={date}")
             rec, _ = Attendance.objects.get_or_create(
                 child=child, date=date, defaults={'source': Attendance.BY_STAFF})
+            before = rec.snapshot()
             try:
                 rec.check_in = _parse_time(request.POST.get('check_in'), date)
                 rec.check_out = _parse_time(request.POST.get('check_out'), date)
@@ -250,6 +254,7 @@ def board(request):
             rec.note = request.POST.get('note', '')[:200]
             rec.source = Attendance.BY_STAFF
             rec.save()
+            AttendanceLog.add(rec, before, Attendance.BY_STAFF, request.user)
         return redirect(f"{request.path}?date={date}")
 
     records = {a.child_id: a for a in Attendance.objects.filter(date=date)}

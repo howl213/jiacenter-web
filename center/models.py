@@ -93,6 +93,40 @@ class Attendance(models.Model):
     def __str__(self):
         return f'{self.date} {self.child}'
 
+    def snapshot(self):
+        """변경 이력에 남길 한 줄 요약. 시각은 서울 시간 기준 HH:MM."""
+        def t(v):
+            return f'{timezone.localtime(v):%H:%M}' if v else '-'
+        return f'입실 {t(self.check_in)} / 퇴실 {t(self.check_out)} / {self.status} / {self.note or "-"}'
+
+
+class AttendanceLog(models.Model):
+    """출결 기록이 바뀔 때마다 이전 값과 새 값을 남긴다. 정산 근거를 나중에 확인하기 위한 것이다.
+
+    출결 행이 지워져도 이력은 남도록 label 에 아동·날짜를 따로 적는다.
+    """
+    attendance = models.ForeignKey(Attendance, null=True, on_delete=models.SET_NULL,
+                                   related_name='logs', verbose_name='출결')
+    label = models.CharField('대상', max_length=60)
+    by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                           on_delete=models.SET_NULL, verbose_name='바꾼 직원')
+    via = models.CharField('경로', max_length=10)   # kiosk / staff(현황판) / admin
+    at = models.DateTimeField('바꾼 시각', auto_now_add=True)
+    before = models.TextField('이전')
+    after = models.TextField('이후')
+
+    class Meta:
+        verbose_name = verbose_name_plural = '출결 변경 이력'
+        ordering = ['-at', '-id']
+
+    @classmethod
+    def add(cls, rec, before, via, by=None):
+        """값이 실제로 달라졌을 때만 남긴다."""
+        after = rec.snapshot()
+        if before != after:
+            cls.objects.create(attendance=rec, label=f'{rec.date} {rec.child}', by=by,
+                               via=via, before=before, after=after)
+
 
 class NotifyLog(models.Model):
     """알림톡 API 승인 전에는 전송 대신 여기에만 기록한다."""
