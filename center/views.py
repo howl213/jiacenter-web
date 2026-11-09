@@ -92,7 +92,7 @@ def limited_login(login_view):
     """
     def wrapped(request):
         ip = request.META.get('REMOTE_ADDR')
-        name = hashlib.sha1(request.POST.get('username', '').strip().lower().encode()).hexdigest()
+        name = hashlib.sha1(request.POST.get('username', '').strip().lower().encode(), usedforsecurity=False).hexdigest()
         user_key, ip_key = f'login:{ip}:{name}', f'login-ip:{ip}'
         if request.method == 'POST' and (_blocked(user_key, LOGIN_MAX_FAILS)
                                          or _blocked(ip_key, LOGIN_IP_MAX_FAILS)):
