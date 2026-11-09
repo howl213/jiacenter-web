@@ -49,4 +49,5 @@ def notice_format(text):
             paragraph.append(line)
     flush()
     end_paragraph()
-    return mark_safe(''.join(out))
+    # 모든 사용자 글은 inline() 에서 escape 를 거친다. 이 줄을 고치면 test_html_* XSS 시험이 통과하는지 본다.
+    return mark_safe(''.join(out))  # nosec B703 B308

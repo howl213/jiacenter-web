@@ -1,0 +1,29 @@
+name: track
+
+# main(안전한 껍데기)과 vuln(팀 실습용)이 섞이지 않게 한다.
+# - vuln 에서 main 으로 가는 PR 을 막는다 (취약 코드가 main 에 들어가면 안 된다)
+# - main 갈래에 취약판 표시·삽입 목록이 없고, vuln 갈래에 답안지가 없는지 본다
+# - 삽입 목록의 항목마다 같은 이름의 커밋이 있는지 본다
+on:
+  pull_request:
+  push:
+    branches: [main, 'vuln/**']
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     # 커밋 이력을 봐야 해서 전체를 받는다
+      - name: PR 방향
+        if: github.event_name == 'pull_request'
+        # 브랜치 이름을 명령에 직접 끼우지 않고 환경 변수로 넘긴다 (이름에 악성 글자가 들어갈 수 있다)
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+        run: python3 scripts/check_track.py pr "$BASE" "$HEAD"
+      - name: 갈래 검사
+        run: python3 scripts/check_track.py tree
+      - name: 삽입 목록 ↔ 커밋
+        run: python3 scripts/check_manifest.py

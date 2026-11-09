@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -23,6 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # 운영에서는 DJANGO_DEBUG=0 으로 끈다. 켜 둔 채 공개하면 에러 화면에 설정과 코드가 그대로 노출된다.
+# shortcut: `manage.py test` 로 돌 때만 빠른 해시를 쓴다. PBKDF2 는 로그인 테스트마다 느려
+# 전체가 약 16초 걸리던 것이 0.5초가 된다(2026-11-09 측정). 실행 인자로 판단하므로 운영 실행에는
+# 영향이 없고, 아래 테스트가 그것을 지킨다. 별도 설정 모듈로 나눌 때 이 블록을 없앤다.
+if sys.argv[1:2] == ['test']:
+    PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
+
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'my'
 
@@ -139,12 +146,19 @@ STATIC_URL = 'static/'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+# 이 사이트는 메일을 보내지 않는다(알림은 알림톡 기록뿐). 개발 중에만 화면에 찍고,
+# 운영에서는 정의하지 않는다 — 개발용 메일 백엔드가 운영에 남아 있으면 배포 점검(mail.E001)이 실패한다.
+if DEBUG:
+    MAILERS = {
+        'default': {
+            'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        },
+    }
 
+
+# HSTS preload(security.W021)는 일부러 켜지 않는다. 브라우저의 preload 목록에 올리면 되돌리기 어렵고
+# 서브도메인까지 영구히 HTTPS 만 쓰겠다는 약속이다. 도메인과 HTTPS 운영이 확정된 뒤에 결정한다(docs/확인사항.md E칸).
+SILENCED_SYSTEM_CHECKS = ['security.W021']
 
 # 센터 기본 정보 (실제 값으로 교체)
 CENTER = {

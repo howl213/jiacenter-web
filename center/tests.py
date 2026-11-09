@@ -1,3 +1,10 @@
+import os
+import subprocess
+import sys
+import unittest
+from pathlib import Path
+
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import TestCase
@@ -13,6 +20,26 @@ class PageTests(TestCase):
 
     def test_board_requires_login(self):
         self.assertEqual(self.client.get('/attendance/board/').status_code, 302)
+
+
+class HasherSafetyTests(TestCase):
+    def test_fast_test_hasher_does_not_leak_into_normal_runs(self):
+        # 테스트용 빠른 해시는 `manage.py test` 일 때만 켜진다. 다른 방식으로 설정을 읽으면 비어 있어야 한다.
+        code = ("import os; os.environ['DJANGO_SETTINGS_MODULE']='config.settings'; "
+                "import config.settings as s; print(hasattr(s, 'PASSWORD_HASHERS'))")
+        out = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True,
+                             cwd=settings.BASE_DIR).stdout.strip()
+        self.assertEqual(out, 'False')
+
+
+@unittest.skipIf(Path(settings.BASE_DIR, 'docs', 'vuln-manifest.md').exists(), 'vuln 갈래는 일부러 취약하다')
+class DeployCheckTests(TestCase):
+    def test_django_deploy_check_has_no_issues_in_production_mode(self):
+        env = {**os.environ, 'DJANGO_DEBUG': '0',
+               'DJANGO_SECRET_KEY': 'test-only-key-test-only-key-test-only-key-0123456789'}
+        r = subprocess.run([sys.executable, 'manage.py', 'check', '--deploy', '--fail-level', 'WARNING'],
+                           cwd=settings.BASE_DIR, env=env, capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
 
 class NoticeFormatTests(TestCase):

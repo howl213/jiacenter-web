@@ -3,7 +3,7 @@ name: test
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, 'vuln/**']
 
 jobs:
   test:
@@ -16,10 +16,22 @@ jobs:
       - run: pip install -r requirements.txt
       - name: 테스트
         run: python manage.py test
+      - name: 정적 보안 점검 (bandit, 중간 이상)
+        # 일부러 취약한 vuln 갈래는 걸리는 것이 정상이라 돌리지 않는다
+        if: ${{ !startsWith(github.head_ref || github.ref_name, 'vuln') }}
+        run: pip install bandit && bandit -q -r center config manage.py -ll
+      - name: 마이그레이션 누락 검사
+        # 모델을 바꿨는데 마이그레이션 파일을 빠뜨리면 여기서 걸린다
+        run: python manage.py makemigrations --check --dry-run
+      - name: 개인정보·금지 파일 검사
+        run: scripts/check_leaks.sh --all
+      - name: 하네스 스크립트 테스트
+        run: python -m unittest discover -s scripts
       - name: 보안 설정 점검
-        # 운영 설정(DEBUG=0)에서 Django 자체 점검을 돌린다.
-        # 현재는 미해결 경고가 있어 실패해도 머지를 막지 않는다. 조치 후 이 줄을 지운다.
-        continue-on-error: true
+        # 운영 설정(DEBUG=0)에서 Django 자체 점검을 돌린다. 경고가 하나라도 있으면 실패한다
+        # (2026-11-09 경고 0건으로 맞춤. HSTS preload 는 이유를 적고 일부러 끈 것이다).
+        # 일부러 취약한 vuln 갈래는 이 점검의 대상이 아니다.
+        if: ${{ !startsWith(github.head_ref || github.ref_name, 'vuln') }}
         env:
           DJANGO_DEBUG: '0'
           DJANGO_SECRET_KEY: ci-only-not-a-real-secret-ci-only-not-a-real-secret
