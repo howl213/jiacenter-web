@@ -68,6 +68,15 @@ class Guard(unittest.TestCase):
         self.check('PASS', '.venv/bin/python manage.py test')
         self.check('PASS', '.venv/bin/python manage.py makemigrations --check --dry-run')
 
+    def test_commands_that_change_the_local_db_ask(self):
+        for cmd in ['.venv/bin/python manage.py seed_dummy', 'python manage.py flush --noinput',
+                    'python manage.py loaddata x.json', 'python manage.py createsuperuser',
+                    'sqlite3 db.sqlite3 "select * from center_child"']:
+            self.check('ASK', cmd)
+        # 컨테이너 안에서 도는 것은 로컬 DB 가 아니다
+        self.check('PASS', 'docker compose exec -T web python manage.py seed_dummy')
+        self.check('PASS', '.venv/bin/python manage.py check')
+
     def test_ordinary_commands_pass(self):
         self.check('PASS', 'ls -la')
 

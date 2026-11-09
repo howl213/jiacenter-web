@@ -12,6 +12,30 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/scripts/session_brief.py\"",
+            "timeout": 20,
+            "statusMessage": "프로젝트 상태 확인"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/scripts/stop_check.py\"",
+            "timeout": 60,
+            "statusMessage": "끝내기 전 빠른 점검"
+          }
+        ]
+      }
     ]
   }
 }

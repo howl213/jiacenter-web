@@ -75,6 +75,14 @@ def main():
     if re.search(r'manage\.py\s+migrate\b', cmd) and '--settings' not in cmd:
         ask('실제 db.sqlite3 에 마이그레이션을 적용합니다. 진행할까요?')
 
+    # 2026-11-09 사고: 시드 명령을 로컬 DB 에 그대로 돌려 데이터가 섞였다. DB 를 바꾸는 명령은 먼저 묻는다.
+    # Docker 안에서 돌리는 것(docker compose exec/run)은 로컬 DB 가 아니므로 통과시킨다.
+    if (re.search(r'manage\.py\s+(seed_dummy|flush|sqlflush|loaddata|createsuperuser|changepassword|dbshell)\b', cmd)
+            and not re.search(r'\bdocker\s+(compose\s+)?(exec|run)\b', cmd)):
+        ask('로컬 db.sqlite3 의 데이터를 바꾸는 관리 명령입니다. 실습용 시드는 docker compose 안에서 돌리세요. 그래도 진행할까요?')
+    if re.search(r'\bsqlite3\b[^|;&]*db\.sqlite3', cmd):
+        ask('db.sqlite3 를 직접 엽니다. 아동 이름·연락처(모의 값이라도)가 출력에 남을 수 있습니다. 진행할까요?')
+
 
 if __name__ == '__main__':
     main()
