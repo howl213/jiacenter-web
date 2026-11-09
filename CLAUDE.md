@@ -67,7 +67,10 @@
 - 클론한 뒤 한 번 `git config core.hooksPath .githooks` — 커밋 직전에 `scripts/check_leaks.sh --staged` 가 돈다
 - 개인정보·금지 파일 판정은 `scripts/check_leaks.sh` **한 곳에서만** 한다. git 훅, CI, 다른 저장소로 파일을 보낼 때(`--external`)가 모두 이 스크립트를 부른다
 - Claude 의 위험 명령(타 저장소 쓰기, 강제 푸시, 실제 DB 마이그레이션, `--no-verify`)은 `scripts/claude_guard.py` 가 `.claude/settings.json` 훅으로 막거나 묻는다
-- 두 스크립트의 테스트: `python -m unittest discover -s scripts`
+- 두 갈래가 섞이지 않게 `scripts/check_track.py` 가 본다 — main 에는 취약판 표시(`[실습 A0N]`, 배너, 삽입 목록)가 없어야 하고, vuln 에는 답안지(`SECURITY_REVIEW.md`)가 없어야 하며, vuln → main PR 은 막는다
+- 삽입 목록(`docs/vuln-manifest.md`)의 항목마다 같은 이름의 커밋이 있는지는 `scripts/check_manifest.py` 가 본다
+- `/verify`(= `scripts/verify.sh`)가 테스트·마이그레이션·개인정보·갈래 검사를 한 번에 돌린다. 세션 시작 때는 상태를 요약해 주고, 코드를 바꾼 채 끝낼 때는 빠른 점검만 경고로 알린다
+- 스크립트들의 테스트: `python -m unittest discover -s scripts`
 
 ---
 
