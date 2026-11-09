@@ -2,8 +2,9 @@
 """Claude Code PreToolUse(Bash) 훅. 내가 하는 위험한 명령을 실행 전에 막거나 사용자에게 묻는다.
 
 - 차단(종료 코드 2): `git commit --no-verify` (pre-commit 의 누출 검사를 건너뛰는 것)
-- 확인(ask): 우리 저장소가 아닌 곳으로 쓰는 명령(git push, gh ... --repo/-R, gh api 쓰기),
-             강제 푸시, 새 저장소 만들기, 실제 DB 에 `manage.py migrate`
+- 확인(ask): 사람이 정하는 지점(CLAUDE.md 0절 표)에 해당하는 명령 —
+             타 저장소로 쓰기, 강제 푸시·되돌리기 어려운 git 명령, 새 저장소 만들기, 병합, main 에 직접 커밋·푸시·병합,
+             실제 DB 를 바꾸는 명령, 팀에 넘길 폴더 만들기
 파일 내용 검사는 하지 않는다 — 그건 scripts/check_leaks.sh 가 git 훅과 CI 에서 한다.
 """
 import json
@@ -62,6 +63,21 @@ def main():
         url = remote_url(cwd, remote) or remote
         if OURS not in url:
             ask(f'우리 저장소가 아닌 곳으로 푸시합니다 ({url}). 올리는 파일에 개인정보·답안지·내부 문서가 없는지 확인했나요?')
+
+    # 되돌리기 어려운 git 명령: 작업을 지우거나 이력을 다시 쓴다
+    if (re.search(r'\bgit\s+(-\S+\s+)*(reset\s+--hard|clean\s+-\S*f\S*|branch\s+-D|filter-repo|filter-branch|rebase)\b', cmd)
+            or re.search(r'\bgit\s+push\b.*(--delete|\s:\S)', cmd)):
+        ask('작업을 지우거나 이력을 다시 쓰는 git 명령입니다. 진행할까요?')
+    if re.search(r'\bgh\s+pr\s+merge\b', cmd):
+        ask('병합은 사람이 정합니다. CI 결과를 확인했나요? 진행할까요?')
+    if re.search(r'export_for_team\.py', cmd):
+        ask('팀에 넘길 폴더를 만듭니다. 폴더를 만드는 것까지이고 올리는 것은 따로 확인합니다. 진행할까요?')
+    # main 보호 규칙을 걸 수 없는 플랜(GitHub Free 비공개)이라 훅이 대신 묻는다
+    if re.search(r'\bgit\s+(-\S+\s+)*(commit|merge|push)\b', cmd):
+        branch = subprocess.run(['git', '-C', cwd or '.', 'symbolic-ref', '--short', 'HEAD'],
+                                capture_output=True, text=True).stdout.strip()   # 첫 커밋 전에도 동작한다
+        if branch == 'main' or re.search(r'\bpush\b[^|;&]*\bmain\b', cmd):
+            ask('main 에 직접 커밋·병합·푸시하려 합니다. 이 프로젝트는 브랜치 → PR 로 갑니다. 진행할까요?')
 
     for m in re.finditer(r'\bgh\b.*?(?:--repo|-R)[ =](\S+)', cmd):
         if not m.group(1).startswith(OURS):
