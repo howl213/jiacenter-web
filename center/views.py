@@ -303,9 +303,10 @@ def export(request):
     return response
 
 
+# [실습 A01] 주소의 아동 번호를 그대로 믿는다 — 내 아이인지 확인하지 않는다(IDOR).
 @login_required
 def my_child(request, child_id):
-    """[실습 A01] 주소의 아동 번호를 그대로 믿는다 — 내 아이인지 확인하지 않는다(IDOR)."""
+    """아동 한 명의 최근 30일 출결."""
     child = get_object_or_404(Child, pk=child_id)
     since = timezone.localdate() - timedelta(days=30)
     records = list(Attendance.objects.filter(child=child, date__gte=since))
