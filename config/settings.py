@@ -146,12 +146,19 @@ STATIC_URL = 'static/'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+# 이 사이트는 메일을 보내지 않는다(알림은 알림톡 기록뿐). 개발 중에만 화면에 찍고,
+# 운영에서는 정의하지 않는다 — 개발용 메일 백엔드가 운영에 남아 있으면 배포 점검(mail.E001)이 실패한다.
+if DEBUG:
+    MAILERS = {
+        'default': {
+            'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        },
+    }
 
+
+# HSTS preload(security.W021)는 일부러 켜지 않는다. 브라우저의 preload 목록에 올리면 되돌리기 어렵고
+# 서브도메인까지 영구히 HTTPS 만 쓰겠다는 약속이다. 도메인과 HTTPS 운영이 확정된 뒤에 결정한다(docs/확인사항.md E칸).
+SILENCED_SYSTEM_CHECKS = ['security.W021']
 
 # 센터 기본 정보 (실제 값으로 교체)
 CENTER = {

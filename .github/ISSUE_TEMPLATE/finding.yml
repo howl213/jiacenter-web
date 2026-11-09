@@ -1,0 +1,49 @@
+name: 팀 발견 접수
+description: 팀원이 진단 중 찾은 취약점을 접수해 의도/비의도로 분류한다
+title: "[발견] "
+labels: ["finding"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        팀 저장소의 이슈를 옮겨 적는 양식이다. 재현에는 모의 데이터와 로컬 환경만 쓴다.
+  - type: input
+    id: owasp
+    attributes:
+      label: OWASP 항목 (2025판 번호)
+      placeholder: "예: A05"
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: 위치 (주소 또는 화면)
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 재현 절차
+    validations:
+      required: true
+  - type: dropdown
+    id: intended
+    attributes:
+      label: 삽입 목록(docs/vuln-manifest.md)에 있는 항목인가
+      options:
+        - 목록에 있다 (의도)
+        - 목록에 없다 (비의도)
+        - 아직 모르겠다
+    validations:
+      required: true
+  - type: dropdown
+    id: onmain
+    attributes:
+      label: 같은 재현이 main 에서도 되는가
+      description: 비의도 발견이면 main 의 결함일 가능성이 높다. main 코드로 같은 절차를 해 본 결과를 고른다
+      options:
+        - 되지 않는다
+        - 된다 (main 결함)
+        - 아직 해 보지 않았다
+    validations:
+      required: true
