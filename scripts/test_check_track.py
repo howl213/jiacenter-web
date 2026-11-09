@@ -57,6 +57,11 @@ class Track(Base):
         for needle in ['a.py:1', 't.html:1', 'vuln-manifest']:
             self.assertIn(needle, err)
 
+    def test_tools_in_scripts_may_mention_the_marker(self):
+        # 표시를 다루는 도구와 그 시험은 표시 문자열을 담고 있어도 된다
+        self.put('scripts/export_tool.py', 'MARKER = "[실습 A05]"\n')
+        self.assertEqual(self.run_script(TRACK, 'tree', branch='feat/x')[0], 0)
+
     def test_main_rejects_vuln_commits_in_history(self):
         self.put('a.py', 'x = 1\n')
         self.commit('base')
