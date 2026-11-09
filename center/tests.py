@@ -1,3 +1,7 @@
+import subprocess
+import sys
+
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import TestCase
@@ -87,6 +91,16 @@ class NoticeSearchTests(TestCase):
             Notice.objects.create(title=f'행사 {i}', body='x')
         body = self.client.get('/notices/', {'q': '행사'}).content.decode()
         self.assertIn('?q=%ED%96%89%EC%82%AC&amp;page=2', body)
+
+
+class HasherSafetyTests(TestCase):
+    def test_fast_test_hasher_does_not_leak_into_normal_runs(self):
+        # 테스트용 빠른 해시는 `manage.py test` 일 때만 켜진다. 다른 방식으로 설정을 읽으면 비어 있어야 한다.
+        code = ("import os; os.environ['DJANGO_SETTINGS_MODULE']='config.settings'; "
+                "import config.settings as s; print(hasattr(s, 'PASSWORD_HASHERS'))")
+        out = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True,
+                             cwd=settings.BASE_DIR).stdout.strip()
+        self.assertEqual(out, 'False')
 
 
 class CenterInfoTests(TestCase):
