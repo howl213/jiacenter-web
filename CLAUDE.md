@@ -69,6 +69,7 @@
 - Claude 의 위험 명령(타 저장소 쓰기, 강제 푸시, 실제 DB 마이그레이션, `--no-verify`)은 `scripts/claude_guard.py` 가 `.claude/settings.json` 훅으로 막거나 묻는다
 - 두 갈래가 섞이지 않게 `scripts/check_track.py` 가 본다 — main 에는 취약판 표시(`[실습 A0N]`, 배너, 삽입 목록)가 없어야 하고, vuln 에는 답안지(`SECURITY_REVIEW.md`)가 없어야 하며, vuln → main PR 은 막는다
 - 삽입 목록(`docs/vuln-manifest.md`)의 항목마다 같은 이름의 커밋이 있는지는 `scripts/check_manifest.py` 가 본다
+- 팀에게 vuln 코드를 넘길 때는 `scripts/export_for_team.py <새 폴더>` 로 폴더를 만든다(내부 문서·시험·답안지 제외, 심은 곳의 설명 주석 삭제, 검사 통과해야 끝남). 푸시는 사용자 확인 뒤에 직접. 심은 곳의 설명은 반드시 `# [실습 A0N] ...` 주석 줄로만 쓴다
 - `/verify`(= `scripts/verify.sh`)가 테스트·마이그레이션·개인정보·갈래 검사를 한 번에 돌린다. 세션 시작 때는 상태를 요약해 주고, 코드를 바꾼 채 끝낼 때는 빠른 점검만 경고로 알린다
 - 스크립트들의 테스트: `python -m unittest discover -s scripts`
 
