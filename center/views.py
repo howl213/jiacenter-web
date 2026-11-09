@@ -233,7 +233,8 @@ def board(request):
     date = _parse_date(request.GET.get('date'), timezone.localdate())
 
     if request.method == 'POST':
-        child = get_object_or_404(Child, pk=_pk(request.POST.get('child')))
+        # [실습 A10] 값이 없거나 숫자가 아니면 예외가 그대로 터지고, DEBUG 켜진 화면에 내부 정보가 나온다.
+        child = get_object_or_404(Child, pk=request.POST['child'])
         # 날짜는 폼에서 받는다 — 과거 날짜를 보던 중에 저장해도 그 날짜에 기록된다.
         date = _parse_date(request.POST.get('date'), date)
         if 'toggle' in request.POST:

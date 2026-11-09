@@ -7,7 +7,7 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.utils import timezone
 
 from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog
@@ -354,9 +354,15 @@ class BoardTests(TestCase):
             'child': self.child.pk, 'date': '2026-03-14', 'check_in': '09:00', 'status': '병가'})
         self.assertEqual(Attendance.objects.get().status, '병가')
 
-    def test_board_post_without_valid_child_is_404(self):
-        for data in [{}, {'child': 'abc'}, {'child': '999'}]:
-            self.assertEqual(self.client.post('/attendance/board/', data).status_code, 404, data)
+    @override_settings(DEBUG=True)
+    def test_board_post_without_child_crashes_and_shows_internals(self):
+        # [실습 A10] 항목이 없으면 404 가 아니라 500 이고, DEBUG 화면에 예외 이름과 코드가 보인다.
+        client = Client(raise_request_exception=False)
+        client.login(username='staff', password='pw')
+        resp = client.post('/attendance/board/', {})
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn('MultiValueDictKeyError', resp.content.decode())
+        self.assertEqual(self.client.post('/attendance/board/', {'child': '999'}).status_code, 404)
 
     def test_tile_click(self):
         msg = self.client.post('/attendance/', {'child': self.child.pk}).context['message']
