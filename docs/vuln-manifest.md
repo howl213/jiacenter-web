@@ -15,3 +15,4 @@
 | A02 | 기본 관리자 계정 `admin` (시드, 흔한 비밀번호), DEBUG 켜짐(코드 기본값 1, compose 에서도 1) | `vuln(A02)` | 심음, 시험 추가 |
 | A01 | 월별 출결 CSV(`/attendance/export/`)의 직원 권한 검사 제거, 주소의 아동 번호를 믿는 `/my/<id>/` 추가(IDOR) | `vuln(A01)` | 심음, 시험 교체 |
 | A05 | 공지 검색이 SQL 문장에 검색어를 이어 붙임 (`notice_list()`) | `vuln(A05)` SQL | 심음, 시험 교체 |
+| A05 | 공지 본문 서식 필터가 이스케이프를 하지 않음 → 저장형 XSS (`templatetags/notice_format.py`) | `vuln(A05)` XSS | 심음, 시험 교체 |

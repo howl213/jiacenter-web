@@ -20,7 +20,8 @@ def notice_format(text):
     out, items = [], []
 
     def inline(s):
-        return _BOLD.sub(r'<strong>\1</strong>', escape(s))
+        # [실습 A05] 이스케이프를 하지 않는다 — 공지 본문의 HTML 이 그대로 화면에 나간다(저장형 XSS).
+        return _BOLD.sub(r'<strong>\1</strong>', s)
 
     def flush():
         if items:
