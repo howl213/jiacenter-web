@@ -133,10 +133,12 @@ def main():
         print(f'내보내기 실패: {e}', file=sys.stderr)
         return 1
 
-    for pyc in dest.rglob('__pycache__'):
-        shutil.rmtree(pyc, ignore_errors=True)
+    # manage.py check 가 만든 부산물(로그, DB, 캐시)은 내보내는 폴더에 남기지 않는다
+    for junk in [dest / 'logs', *dest.rglob('__pycache__'), *dest.rglob('*.sqlite3')]:
+        shutil.rmtree(junk, ignore_errors=True) if junk.is_dir() else junk.unlink(missing_ok=True)
     print(f'내보냄: {dest}  (파일 {kept}개 포함, {len(dropped)}개 제외)')
-    print('제외한 것: ' + ', '.join(sorted({d.split('/')[0] for d in dropped})))
+    top = sorted({d.split('/')[0] if d.startswith(EXCLUDE_DIRS) else d for d in dropped})
+    print('제외한 것: ' + ', '.join(top))
     print('푸시는 하지 않았습니다. 올리기 전에 폴더 내용을 직접 한 번 더 보세요.')
     return 0
 
