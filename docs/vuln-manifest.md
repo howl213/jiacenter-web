@@ -18,3 +18,5 @@
 | A05 | 공지 본문 서식 필터가 이스케이프를 하지 않음 → 저장형 XSS (`templatetags/notice_format.py`) | `vuln(A05)` XSS | 심음, 시험 교체 |
 | A10 | 현황판 POST 의 입력 검증 제거 → 예외가 그대로 터지고 DEBUG 화면에 내부 정보 (`board()`) | `vuln(A10)` | 심음, 시험 교체 |
 | A09 | 보안 로그 없음 — main 에도 없어서 따로 심지 않음 | — | 해당 없음 |
+
+> main 에서 합쳐 올 때 `SECURITY_REVIEW.md`(답안지)가 다시 들어오면 `scripts/check_track.py` 가 실패한다. 충돌이 나면 삭제를 유지한다.
