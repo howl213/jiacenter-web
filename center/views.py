@@ -192,15 +192,9 @@ def kiosk(request):
     """
     message = None
     if request.method == 'POST':
-        kiosk_key = f'kiosk:{request.META.get("REMOTE_ADDR")}'
-        if _blocked(kiosk_key, KIOSK_MAX_MISSES):
-            message = '잠시 후 다시 눌러 주세요'
-        else:
-            child = _find_child(request.POST.get('child'), request.POST.get('number'))
-            # 못 찾으면 DB를 전혀 건드리지 않고 안내만 한다.
-            message = _toggle(child, Attendance.BY_KIOSK) if child else '없는 번호입니다'
-            if not child:
-                _count_failure(kiosk_key, KIOSK_WINDOW)
+        child = _find_child(request.POST.get('child'), request.POST.get('number'))
+        # 못 찾으면 DB를 전혀 건드리지 않고 안내만 한다.
+        message = _toggle(child, Attendance.BY_KIOSK) if child else '없는 번호입니다'
 
     # 여기부터는 GET/POST 공통 — 처리 후의 최신 상태로 명단을 다시 그린다.
     today = timezone.localdate()

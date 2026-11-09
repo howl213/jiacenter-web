@@ -257,53 +257,25 @@ class KioskTests(TestCase):
         self.assertIn('없는', resp.context['message'])
 
 
-class ThrottleTests(TestCase):
+class NoLockoutTests(TestCase):
+    """[실습] 시도 횟수 제한이 없다 — 틀려도 잠기지 않는다 (A07). main 에서는 이 시험이 반대로 쓰여 있다."""
+
     def setUp(self):
-        cache.clear()
         User.objects.create_superuser('staff', 'a@b.c', 'pw')
 
-    def test_kiosk_locks_after_repeated_misses(self):
+    def test_login_never_locks_after_many_failures(self):
+        for _ in range(40):
+            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
+        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
+        self.assertEqual(resp.status_code, 302)
+
+    def test_kiosk_never_locks_after_many_misses(self):
         child = Child.objects.create(name='홍길동', number=7)
-        for _ in range(10):
+        for _ in range(30):
             self.client.post('/attendance/', {'number': '99'})
         msg = self.client.post('/attendance/', {'number': '7'}).context['message']
-        self.assertIn('잠시 후', msg)
-        self.assertFalse(Attendance.objects.filter(child=child).exists())
-
-    def test_login_locks_even_correct_password_after_failures(self):
-        for _ in range(5):
-            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
-        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
-        self.assertEqual(resp.status_code, 429)
-
-    def test_other_account_on_same_ip_is_not_locked(self):
-        User.objects.create_user('other', password='pw2', is_staff=True)
-        for _ in range(5):
-            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
-        resp = self.client.post('/admin/login/', {'username': 'other', 'password': 'pw2'})
-        self.assertEqual(resp.status_code, 302)
-
-    def test_success_resets_the_count(self):
-        for _ in range(4):
-            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
-        self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
-        self.client.logout()
-        for _ in range(4):
-            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
-        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
-        self.assertEqual(resp.status_code, 302)
-
-    def test_changing_usernames_hits_the_ip_limit(self):
-        for i in range(30):
-            self.client.post('/admin/login/', {'username': f'guess{i}', 'password': 'x'})
-        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
-        self.assertEqual(resp.status_code, 429)
-
-    def test_login_still_works_before_limit(self):
-        for _ in range(4):
-            self.client.post('/admin/login/', {'username': 'staff', 'password': 'wrong'})
-        resp = self.client.post('/admin/login/', {'username': 'staff', 'password': 'pw'})
-        self.assertEqual(resp.status_code, 302)
+        self.assertIn('입실', msg)
+        self.assertTrue(Attendance.objects.filter(child=child).exists())
 
 
 class GuardianTests(TestCase):
@@ -345,11 +317,11 @@ class GuardianTests(TestCase):
             self.assertEqual(resp.status_code, 302, url)
             self.assertIn('/admin/login/', resp.url, url)
 
-    def test_guardian_login_is_throttled_too(self):
-        for _ in range(5):
+    def test_guardian_login_has_no_lockout(self):
+        for _ in range(10):
             self.client.post('/login/', {'username': 'mom', 'password': 'wrong'})
         resp = self.client.post('/login/', {'username': 'mom', 'password': 'pw1'})
-        self.assertEqual(resp.status_code, 429)
+        self.assertEqual(resp.status_code, 302)
 
 
 class BoardTests(TestCase):
