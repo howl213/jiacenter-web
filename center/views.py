@@ -276,7 +276,7 @@ def _csv_safe(value):
     return "'" + text if text[:1] in ('=', '+', '-', '@') else text
 
 
-@staff_member_required
+# [실습 A01] 권한 검사(@staff_member_required)가 없다 — 로그인하지 않은 사람도 월별 출결 CSV 를 받는다.
 def export(request):
     """그 달 출결을 CSV로. 정산 보고서를 만들 때 엑셀에서 연다."""
     month = request.GET.get('month') or f'{timezone.localdate():%Y-%m}'
@@ -298,6 +298,15 @@ def export(request):
             a.status, a.get_source_display(), _csv_safe(a.note),
         ])
     return response
+
+
+@login_required
+def my_child(request, child_id):
+    """[실습 A01] 주소의 아동 번호를 그대로 믿는다 — 내 아이인지 확인하지 않는다(IDOR)."""
+    child = get_object_or_404(Child, pk=child_id)
+    since = timezone.localdate() - timedelta(days=30)
+    records = list(Attendance.objects.filter(child=child, date__gte=since))
+    return render(request, 'center/my.html', {'rows': [(child, records)]})
 
 
 @login_required

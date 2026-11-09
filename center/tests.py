@@ -312,12 +312,23 @@ class GuardianTests(TestCase):
         self.client.login(username='nobody', password='pw3')
         self.assertIn('연결된 아이가 없습니다', self.client.get('/my/').content.decode())
 
-    def test_guardian_cannot_open_staff_pages(self):
+    def test_guardian_cannot_open_the_board(self):
         self.client.login(username='mom', password='pw1')
-        for url in ['/attendance/board/', '/attendance/export/']:
-            resp = self.client.get(url)
-            self.assertEqual(resp.status_code, 302, url)
-            self.assertIn('/admin/login/', resp.url, url)
+        resp = self.client.get('/attendance/board/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('/admin/login/', resp.url)
+
+    def test_csv_export_is_open_to_anyone(self):
+        # [실습 A01] 로그인하지 않아도 월별 출결 CSV 를 받는다. main 에서는 직원 로그인 화면으로 보낸다.
+        resp = self.client.get('/attendance/export/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('내아이', resp.content.decode('utf-8-sig'))
+
+    def test_guardian_can_read_another_childs_records_by_id(self):
+        # [실습 A01] 남의 아이 번호를 주소에 넣어도 보인다. main 에는 이 주소 자체가 없다.
+        self.client.login(username='mom', password='pw1')
+        body = self.client.get(f'/my/{self.other.pk}/').content.decode()
+        self.assertIn('남의아이', body)
 
     def test_guardian_login_has_no_lockout(self):
         for _ in range(10):
