@@ -72,11 +72,12 @@ class NoticeSearchTests(TestCase):
         self.assertIn('봄 소풍 안내', body)
         self.assertIn('급식 안내', body)
 
-    def test_odd_input_is_matched_as_plain_text_not_sql(self):
-        for q in ["' OR '1'='1", '%', '_', '\\', 'a' * 5000]:
-            resp = self.client.get('/notices/', {'q': q})
-            self.assertEqual(resp.status_code, 200, q)
-            self.assertNotIn('봄 소풍 안내', resp.content.decode(), q)
+    def test_search_term_is_part_of_the_sql_text(self):
+        # [실습 A05] 검색어가 SQL 문장에 이어 붙으므로 조건이 바뀌어 없는 글자로도 전부 나온다.
+        # main 에서는 이 글자를 그대로 찾기 때문에 아무것도 나오지 않는다.
+        body = self.get("없는말%' OR 1=1 --")
+        self.assertIn('봄 소풍 안내', body)
+        self.assertIn('급식 안내', body)
 
     def test_nul_character_does_not_match_everything(self):
         # SQLite 의 LIKE 는 NUL 에서 패턴이 끊겨 전부 일치해 버린다. 뺀 뒤 나머지 글자로 찾는다.
