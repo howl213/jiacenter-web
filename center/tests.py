@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 import sys
+import unittest
 from pathlib import Path
 
 from django.conf import settings
@@ -139,6 +140,16 @@ class WeakHashTests(TestCase):
         self.assertTrue(user.password.startswith('md5$'), user.password[:6])
         self.assertTrue(user.check_password('pw-for-test'))
 
+
+
+@unittest.skipIf(Path(settings.BASE_DIR, 'docs', 'vuln-manifest.md').exists(), 'vuln 갈래는 일부러 취약하다')
+class DeployCheckTests(TestCase):
+    def test_django_deploy_check_has_no_issues_in_production_mode(self):
+        env = {**os.environ, 'DJANGO_DEBUG': '0',
+               'DJANGO_SECRET_KEY': 'test-only-key-test-only-key-test-only-key-0123456789'}
+        r = subprocess.run([sys.executable, 'manage.py', 'check', '--deploy', '--fail-level', 'WARNING'],
+                           cwd=settings.BASE_DIR, env=env, capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
 
 class CenterInfoTests(TestCase):
