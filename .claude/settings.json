@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/scripts/claude_guard.py\"",
+            "timeout": 15,
+            "statusMessage": "위험 명령 점검"
+          }
+        ]
+      }
+    ]
+  }
+}

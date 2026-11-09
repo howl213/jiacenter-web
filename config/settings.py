@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -23,6 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # 운영에서는 DJANGO_DEBUG=0 으로 끈다. 켜 둔 채 공개하면 에러 화면에 설정과 코드가 그대로 노출된다.
+# shortcut: `manage.py test` 로 돌 때만 빠른 해시를 쓴다. PBKDF2 는 로그인 테스트마다 느려
+# 전체가 약 16초 걸리던 것이 0.5초가 된다(2026-11-09 측정). 실행 인자로 판단하므로 운영 실행에는
+# 영향이 없고, 아래 테스트가 그것을 지킨다. 별도 설정 모듈로 나눌 때 이 블록을 없앤다.
+if sys.argv[1:2] == ['test']:
+    PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
+
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'my'
 

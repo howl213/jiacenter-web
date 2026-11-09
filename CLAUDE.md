@@ -62,6 +62,15 @@
 
 ---
 
+## 4-1. 하네스 (자동 점검)
+
+- 클론한 뒤 한 번 `git config core.hooksPath .githooks` — 커밋 직전에 `scripts/check_leaks.sh --staged` 가 돈다
+- 개인정보·금지 파일 판정은 `scripts/check_leaks.sh` **한 곳에서만** 한다. git 훅, CI, 다른 저장소로 파일을 보낼 때(`--external`)가 모두 이 스크립트를 부른다
+- Claude 의 위험 명령(타 저장소 쓰기, 강제 푸시, 실제 DB 마이그레이션, `--no-verify`)은 `scripts/claude_guard.py` 가 `.claude/settings.json` 훅으로 막거나 묻는다
+- 두 스크립트의 테스트: `python -m unittest discover -s scripts`
+
+---
+
 ## 5. 작업 흐름
 
 ```bash
