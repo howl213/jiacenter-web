@@ -134,14 +134,14 @@ class VulnSafetyTests(TestCase):
             self.assertTrue(c.name.startswith('모의아동'), c.name)
 
 
-class HasherSafetyTests(TestCase):
-    def test_fast_test_hasher_does_not_leak_into_normal_runs(self):
-        # 테스트용 빠른 해시는 `manage.py test` 일 때만 켜진다. 다른 방식으로 설정을 읽으면 비어 있어야 한다.
-        code = ("import os; os.environ['DJANGO_SETTINGS_MODULE']='config.settings'; "
-                "import config.settings as s; print(hasattr(s, 'PASSWORD_HASHERS'))")
-        out = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True,
-                             cwd=settings.BASE_DIR).stdout.strip()
-        self.assertEqual(out, 'False')
+class WeakHashTests(TestCase):
+    """[실습] 비밀번호가 MD5 로 저장된다 (A04). main 에서는 PBKDF2 임을 확인하는 시험이다."""
+
+    def test_passwords_are_stored_with_md5(self):
+        user = User.objects.create_user('someone', password='pw-for-test')
+        self.assertTrue(user.password.startswith('md5$'), user.password[:6])
+        self.assertTrue(user.check_password('pw-for-test'))
+
 
 
 class CenterInfoTests(TestCase):

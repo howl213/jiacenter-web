@@ -11,3 +11,4 @@
 | 항목 | 내용 | 커밋 | 상태 |
 |---|---|---|---|
 | A07 | 로그인·키오스크 시도 제한 제거 (`config/urls.py`, `kiosk()`) | `vuln(A07)` | 심음, 시험 뒤집음 |
+| A04 | 비밀번호 해시를 MD5 로 (`config/settings.py` PASSWORD_HASHERS). 솔트 없는 MD5 는 Django 6.1 에서 제거되어 솔트 있는 MD5 사용 | `vuln(A04)` | 심음, 시험 교체 |

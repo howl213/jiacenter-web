@@ -24,11 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # 운영에서는 DJANGO_DEBUG=0 으로 끈다. 켜 둔 채 공개하면 에러 화면에 설정과 코드가 그대로 노출된다.
-# shortcut: `manage.py test` 로 돌 때만 빠른 해시를 쓴다. PBKDF2 는 로그인 테스트마다 느려
-# 전체가 약 16초 걸리던 것이 0.5초가 된다(2026-11-09 측정). 실행 인자로 판단하므로 운영 실행에는
-# 영향이 없고, 아래 테스트가 그것을 지킨다. 별도 설정 모듈로 나눌 때 이 블록을 없앤다.
-if sys.argv[1:2] == ['test']:
-    PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
+# [실습 A04] 비밀번호를 빠르고 약한 해시(MD5)로 저장한다. main 에서는 이 줄이 없다(Django 기본 PBKDF2).
+# 솔트 없는 MD5 는 Django 6.1 에서 사라져서 솔트가 있는 MD5 를 쓴다 — 그래도 무차별 대입에 약하다.
+PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'my'
