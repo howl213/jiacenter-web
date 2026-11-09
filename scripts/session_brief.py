@@ -41,6 +41,7 @@ def main():
         lines.append('경고: git pre-commit 훅이 꺼져 있다 — `git config core.hooksPath .githooks`')
     if not run('git', 'config', 'user.email').endswith('@users.noreply.github.com'):
         lines.append('참고: git 작성자 이메일이 개인 주소다(커밋마다 박힘)')
+    lines.append('목표 ① main = 실제 구현용 안전한 껍데기(모의 값만, 실제 전환은 사용자 허락)  ② vuln = 팀 OWASP 실습용 취약 표면(로컬 전용). 작업이 어느 쪽인지 먼저 말한다')
     lines.append('마지막 커밋: ' + run('git', 'log', '-1', '--format=%h %s')[:70])
     lines.append('규칙: CLAUDE.md, 미확인 항목: docs/확인사항.md' + (', 취약점 목록: docs/vuln-manifest.md' if Path('docs/vuln-manifest.md').exists() else ''))
 

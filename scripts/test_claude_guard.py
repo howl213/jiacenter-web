@@ -25,10 +25,12 @@ class Guard(unittest.TestCase):
         cls.tmp = tempfile.TemporaryDirectory()
         cls.ours = Path(cls.tmp.name) / 'ours'
         cls.other = Path(cls.tmp.name) / 'other'
-        for d, url in [(cls.ours, 'https://github.com/howl213/jiacenter-web.git'),
-                       (cls.other, 'https://github.com/someone/else.git')]:
+        cls.main_repo = Path(cls.tmp.name) / 'mainrepo'
+        for d, url, branch in [(cls.ours, 'https://github.com/howl213/jiacenter-web.git', 'work'),
+                               (cls.other, 'https://github.com/someone/else.git', 'work'),
+                               (cls.main_repo, 'https://github.com/howl213/jiacenter-web.git', 'main')]:
             d.mkdir()
-            subprocess.run(['git', 'init', '-q'], cwd=d, check=True)
+            subprocess.run(['git', 'init', '-q', '-b', branch], cwd=d, check=True)
             subprocess.run(['git', 'remote', 'add', 'origin', url], cwd=d, check=True)
 
     @classmethod
@@ -76,6 +78,21 @@ class Guard(unittest.TestCase):
         # 컨테이너 안에서 도는 것은 로컬 DB 가 아니다
         self.check('PASS', 'docker compose exec -T web python manage.py seed_dummy')
         self.check('PASS', '.venv/bin/python manage.py check')
+
+    def test_hard_to_undo_git_commands_ask(self):
+        for cmd in ['git reset --hard HEAD~1', 'git clean -fd', 'git branch -D old', 'git rebase main',
+                    'git filter-repo --path x', 'git push origin --delete old']:
+            self.check('ASK', cmd)
+        self.check('PASS', 'git branch -d merged')       # 병합된 것만 지우는 소문자 -d 는 통과
+        self.check('PASS', 'git status')
+
+    def test_merge_export_and_main_edits_ask(self):
+        self.check('ASK', 'gh pr merge 5 --squash')
+        self.check('ASK', 'python3 scripts/export_for_team.py ~/Desktop/x')
+        self.check('ASK', 'git commit -m x', self.main_repo)        # main 위에서
+        self.check('ASK', 'git merge feat/x', self.main_repo)
+        self.check('ASK', 'git push origin HEAD:main')               # 어느 브랜치에서든 main 으로 가는 푸시
+        self.check('PASS', 'git commit -m x')                        # 작업 브랜치에서는 통과
 
     def test_ordinary_commands_pass(self):
         self.check('PASS', 'ls -la')
