@@ -1,10 +1,13 @@
+import os
+import re
 import subprocess
 import sys
+from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog
@@ -91,6 +94,44 @@ class NoticeSearchTests(TestCase):
             Notice.objects.create(title=f'행사 {i}', body='x')
         body = self.client.get('/notices/', {'q': '행사'}).content.decode()
         self.assertIn('?q=%ED%96%89%EC%82%AC&amp;page=2', body)
+
+
+class VulnSafetyTests(TestCase):
+    def test_banner_is_shown_on_every_page(self):
+        for url in ['/', '/notices/', '/login/']:
+            self.assertIn('실습용 취약 버전', self.client.get(url).content.decode(), url)
+
+    def test_non_local_hosts_stop_the_app_from_starting(self):
+        code = "import config.settings"
+        env = {**os.environ, 'DJANGO_SETTINGS_MODULE': 'config.settings', 'DJANGO_ALLOWED_HOSTS': 'example.com'}
+        r = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True,
+                           cwd=settings.BASE_DIR, env=env)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn('로컬 전용', r.stderr)
+
+    def test_compose_publishes_ports_on_loopback_only(self):
+        text = (Path(settings.BASE_DIR) / 'docker-compose.yml').read_text(encoding='utf-8')
+        ports = re.findall(r'^\s*-\s*"?([0-9.:]+:\d+:\d+)"?\s*$', text, flags=re.M)
+        self.assertTrue(ports, 'ports 항목을 찾지 못했다')
+        for p in ports:
+            self.assertTrue(p.startswith('127.0.0.1:'), p)
+
+    def test_seed_refuses_to_run_when_debug_is_off(self):
+        from django.core.management import CommandError, call_command
+        with self.assertRaises(CommandError):
+            call_command('seed_dummy', verbosity=0)    # 테스트 러너는 DEBUG=False 로 돈다
+        self.assertEqual(Child.objects.count(), 0)
+
+    @override_settings(DEBUG=True)
+    def test_seed_is_dummy_only_and_repeatable(self):
+        from django.core.management import call_command
+        call_command('seed_dummy', verbosity=0)
+        first = (Child.objects.count(), Notice.objects.count())
+        call_command('seed_dummy', verbosity=0)
+        self.assertEqual((Child.objects.count(), Notice.objects.count()), first)
+        for c in Child.objects.all():
+            self.assertTrue(c.guardian_tel.startswith('010-0000-'), c.guardian_tel)
+            self.assertTrue(c.name.startswith('모의아동'), c.name)
 
 
 class HasherSafetyTests(TestCase):

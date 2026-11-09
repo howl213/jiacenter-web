@@ -51,6 +51,14 @@ else:
 # 이 서버가 응답할 도메인 목록. 여기 없는 host 헤더로 들어오면 Django 가 거부한다.
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+# vuln 브랜치 전용 안전장치: 이 판은 일부러 취약하므로 로컬 밖 주소를 허용하면 기동을 막는다.
+# (web 은 compose 안에서 스캐너가 부르는 서비스 이름, testserver 는 Django 테스트용)
+_LOCAL_ONLY_HOSTS = {'localhost', '127.0.0.1', '[::1]', 'web', 'testserver'}
+if not set(ALLOWED_HOSTS) <= _LOCAL_ONLY_HOSTS:
+    raise ImproperlyConfigured(
+        'vuln 브랜치는 로컬 전용입니다. DJANGO_ALLOWED_HOSTS 에 허용되지 않은 주소가 있습니다: '
+        + ', '.join(sorted(set(ALLOWED_HOSTS) - _LOCAL_ONLY_HOSTS)))
+
 
 # Application definition
 

@@ -1,0 +1,18 @@
+# 실습용 취약 버전. 로컬 전용이다.
+# 포트는 반드시 127.0.0.1 로만 연다 — 0.0.0.0 으로 바꾸지 말 것. (`center/tests.py` 가 지킨다)
+# 스캐너(ZAP 등)는 같은 compose 네트워크에서 http://web:8000 으로 접근한다.
+name: jiacenter-vuln
+
+services:
+  web:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DJANGO_DEBUG: "1"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,web"
+    networks:
+      - lab
+
+networks:
+  lab:

@@ -70,3 +70,5 @@ nav form { display: inline; }
 .rowform input[type=text] { flex: 1; min-width: 6rem; }
 .rowform input, .rowform select { padding: .35rem; border: 1px solid #ccc; border-radius: 4px; }
 button.ghost { background: #fff; color: #2f6f4f; border: 1px solid #2f6f4f; }
+
+.vuln-banner { background: #b3261e; color: #fff; text-align: center; padding: .4rem; font-weight: 600; }
