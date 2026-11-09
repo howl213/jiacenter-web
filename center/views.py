@@ -39,9 +39,15 @@ def home(request):
 
 
 def notice_list(request):
+    # 검색어는 ORM 필터로만 쓴다. 값이 SQL 문장과 분리되어 전달되므로 문자열을 이어 붙이지 않는다.
+    # NUL 문자는 SQLite 의 LIKE 가 거기서 패턴을 끊어 "전부 일치"가 되므로 미리 뺀다.
+    q = request.GET.get('q', '').replace('\x00', '').strip()[:100]
+    notices = Notice.objects.all()
+    if q:
+        notices = notices.filter(Q(title__icontains=q) | Q(body__icontains=q))
     # get_page 는 ?page 가 없거나 숫자가 아니어도 예외 없이 1페이지를 준다.
-    page = Paginator(Notice.objects.all(), 10).get_page(request.GET.get('page'))
-    return render(request, 'center/notice_list.html', {'page': page})
+    page = Paginator(notices, 10).get_page(request.GET.get('page'))
+    return render(request, 'center/notice_list.html', {'page': page, 'q': q})
 
 
 def notice_detail(request, pk):

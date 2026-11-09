@@ -10,7 +10,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Attendance, AttendanceLog, CenterInfo, Child, NotifyLog
+from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog
 
 
 class PageTests(TestCase):
@@ -40,6 +40,80 @@ class DeployCheckTests(TestCase):
         r = subprocess.run([sys.executable, 'manage.py', 'check', '--deploy', '--fail-level', 'WARNING'],
                            cwd=settings.BASE_DIR, env=env, capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+
+class NoticeFormatTests(TestCase):
+    def render(self, body):
+        n = Notice.objects.create(title='t', body=body)
+        return self.client.get(f'/notices/{n.pk}/').content.decode()
+
+    def test_supported_formatting(self):
+        html = self.render('## 소제목\n\n**중요** 안내입니다\n둘째 줄\n\n- 가\n- 나')
+        self.assertIn('<h3>소제목</h3>', html)
+        self.assertIn('<p><strong>중요</strong> 안내입니다<br>둘째 줄</p>', html)
+        self.assertIn('<ul><li>가</li><li>나</li></ul>', html)
+
+    def test_html_in_the_body_is_shown_as_text(self):
+        html = self.render('<script>alert(1)</script> <img src=x onerror=alert(2)>')
+        self.assertNotIn('<script>alert(1)', html)
+        self.assertNotIn('<img src=x', html)
+        self.assertIn('&lt;script&gt;', html)
+
+    def test_html_inside_bold_and_list_and_heading_is_escaped(self):
+        html = self.render('**<img src=x onerror=1>**\n- <b>x</b>\n## <i>y</i>')
+        for raw in ['<img src=x', '<b>x</b>', '<i>y</i>']:
+            self.assertNotIn(raw, html)
+
+    def test_links_are_not_turned_into_anchors(self):
+        html = self.render('[클릭](javascript:alert(1)) https://example.com')
+        self.assertNotIn('<a href="javascript', html)
+        self.assertNotIn('<a href="https://example.com', html)
+
+    def test_empty_body_does_not_break(self):
+        self.assertEqual(self.render('').count('<h1>'), 1)
+
+
+class NoticeSearchTests(TestCase):
+    def setUp(self):
+        Notice.objects.create(title='봄 소풍 안내', body='4월에 공원으로 갑니다')
+        Notice.objects.create(title='급식 안내', body='이번 주 메뉴는 비빔밥')
+
+    def get(self, q):
+        return self.client.get('/notices/', {'q': q}).content.decode()
+
+    def test_searches_title_and_body(self):
+        self.assertIn('봄 소풍 안내', self.get('소풍'))
+        self.assertNotIn('급식 안내', self.get('소풍'))
+        self.assertIn('급식 안내', self.get('비빔밥'))
+
+    def test_no_match_and_empty_query(self):
+        self.assertIn('해당하는 공지가 없습니다', self.get('없는말'))
+        body = self.get('')
+        self.assertIn('봄 소풍 안내', body)
+        self.assertIn('급식 안내', body)
+
+    def test_odd_input_is_matched_as_plain_text_not_sql(self):
+        for q in ["' OR '1'='1", '%', '_', '\\', 'a' * 5000]:
+            resp = self.client.get('/notices/', {'q': q})
+            self.assertEqual(resp.status_code, 200, q)
+            self.assertNotIn('봄 소풍 안내', resp.content.decode(), q)
+
+    def test_nul_character_does_not_match_everything(self):
+        # SQLite 의 LIKE 는 NUL 에서 패턴이 끊겨 전부 일치해 버린다. 뺀 뒤 나머지 글자로 찾는다.
+        body = self.get('\x00소풍')
+        self.assertIn('봄 소풍 안내', body)
+        self.assertNotIn('급식 안내', body)
+
+    def test_query_is_escaped_in_the_page(self):
+        body = self.get('<script>alert(1)</script>')
+        self.assertNotIn('<script>alert(1)</script>', body)
+        self.assertIn('&lt;script&gt;', body)
+
+    def test_pager_keeps_the_query(self):
+        for i in range(11):
+            Notice.objects.create(title=f'행사 {i}', body='x')
+        body = self.client.get('/notices/', {'q': '행사'}).content.decode()
+        self.assertIn('?q=%ED%96%89%EC%82%AC&amp;page=2', body)
 
 
 class CenterInfoTests(TestCase):
