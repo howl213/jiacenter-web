@@ -16,6 +16,10 @@ jobs:
       - run: pip install -r requirements.txt
       - name: 테스트
         run: python manage.py test
+      - name: 정적 보안 점검 (bandit, 중간 이상)
+        # 일부러 취약한 vuln 갈래는 걸리는 것이 정상이라 돌리지 않는다
+        if: ${{ !startsWith(github.head_ref || github.ref_name, 'vuln') }}
+        run: pip install bandit && bandit -q -r center config manage.py -ll
       - name: 마이그레이션 누락 검사
         # 모델을 바꿨는데 마이그레이션 파일을 빠뜨리면 여기서 걸린다
         run: python manage.py makemigrations --check --dry-run
