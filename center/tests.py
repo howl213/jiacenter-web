@@ -129,6 +129,8 @@ class VulnSafetyTests(TestCase):
         first = (Child.objects.count(), Notice.objects.count())
         call_command('seed_dummy', verbosity=0)
         self.assertEqual((Child.objects.count(), Notice.objects.count()), first)
+        admin = User.objects.get(username='admin')   # [실습 A02] 흔한 기본 관리자 계정
+        self.assertTrue(admin.is_superuser and admin.check_password('admin1234'))
         for c in Child.objects.all():
             self.assertTrue(c.guardian_tel.startswith('010-0000-'), c.guardian_tel)
             self.assertTrue(c.name.startswith('모의아동'), c.name)

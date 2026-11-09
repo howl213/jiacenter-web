@@ -6,6 +6,7 @@ DEBUG 가 꺼진 환경(운영 설정)에서는 돌지 않는다.
 from datetime import time, timedelta
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
@@ -36,6 +37,10 @@ class Command(BaseCommand):
             ('독서 교실', '월·수 16:00'), ('미술 놀이', '화 15:30'),
             ('체육 활동', '목 16:00'), ('학습 도우미', '금 15:00')]):
             Program.objects.get_or_create(name=name, defaults={'schedule': schedule, 'order': order})
+
+        # [실습 A02] 기본 관리자 계정 — 이름과 비밀번호가 문서화된 흔한 값이다. main 의 시드에는 없다.
+        get_user_model().objects.filter(username='admin').exists() or \
+            get_user_model().objects.create_superuser('admin', 'admin@example.com', 'admin1234')
 
         yesterday = timezone.localdate() - timedelta(days=1)
         tz = timezone.get_current_timezone()
