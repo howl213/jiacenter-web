@@ -148,6 +148,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# [실습 A08] 업로드 저장 위치. main 에는 이 설정과 업로드 기능이 없다.
+MEDIA_URL = 'uploads/'
+MEDIA_ROOT = BASE_DIR / 'uploads'
+
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration

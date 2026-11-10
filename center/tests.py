@@ -2,16 +2,18 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.utils import timezone
 
-from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog
+from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog, Upload
 
 
 class PageTests(TestCase):
@@ -442,3 +444,28 @@ class VulnSignupTests(TestCase):
         done = self.client.post('/signup/', {'phone': '010-0000-0002', 'code': code})
         self.assertIn('가입이 완료', done.content.decode())
         self.assertTrue(User.objects.filter(username='010-0000-0002').exists())
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class VulnA08Tests(TestCase):
+    """[실습 A08] role 쿠키 권한 상승과 검사 없는 서류 업로드. main 에는 둘 다 없다."""
+
+    def setUp(self):
+        cache.clear()
+        self.mom = User.objects.create_user('mom', password='pw1')
+        Child.objects.create(name='내아이', number=1, guardian=self.mom)
+        self.client.login(username='mom', password='pw1')
+
+    def test_role_cookie_lets_a_guardian_into_the_staff_board(self):
+        # 쿠키가 없으면 보호자는 직원 현황판에서 막힌다
+        self.assertEqual(self.client.get('/attendance/board/').status_code, 302)
+        # [실습 A08] 서명 없는 role=staff 쿠키만 심으면 직원 화면에 들어온다
+        self.client.cookies['role'] = 'staff'
+        self.assertEqual(self.client.get('/attendance/board/').status_code, 200)
+
+    def test_upload_accepts_a_dangerous_file_without_validation(self):
+        evil = SimpleUploadedFile('shell.html', b'<script>alert(1)</script>', content_type='text/html')
+        self.client.post('/my/', {'doc': evil})
+        up = Upload.objects.get()
+        # [실습 A08] 형식 검사가 없어 .html 도 그대로 저장되고 원래 이름을 유지한다
+        self.assertTrue(up.file.name.endswith('shell.html'), up.file.name)

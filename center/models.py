@@ -142,3 +142,19 @@ class NotifyLog(models.Model):
 
     def __str__(self):
         return f'{timezone.localtime(self.created_at):%m-%d %H:%M} {self.template} → {self.tel}'
+
+
+class Upload(models.Model):
+    """[실습 A08] 보호자가 올린 서류. main 에는 이 모델과 업로드 기능이 없다.
+
+    형식·크기 검사 없이 올린 그대로 저장한다 — 위험한 파일도 막지 않는다.
+    """
+    file = models.FileField('서류', upload_to='docs/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = '업로드 서류'
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return self.file.name

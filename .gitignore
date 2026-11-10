@@ -7,6 +7,8 @@ __pycache__/
 .env
 .DS_Store
 logs/
+uploads/
+# [실습 A08] 업로드 보관 폴더 — 올라온 파일은 커밋하지 않는다
 
 # Google Drive 동기화 임시 폴더
 .tmp.driveupload/

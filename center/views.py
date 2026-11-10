@@ -31,7 +31,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .models import Attendance, AttendanceLog, Child, Notice, Program
+from .models import Attendance, AttendanceLog, Child, Notice, Program, Upload
 from .notify import send_alimtalk
 
 
@@ -225,13 +225,14 @@ def _parse_time(value, date):
     return timezone.make_aware(naive)
 
 
-@staff_member_required
+@login_required
 def board(request):
-    """직원용 현황판. 날짜를 옮겨 다니며 수기로 고칠 수 있다.
-
-    staff_member_required 는 admin 로그인을 그대로 재사용한다(별도 로그인 화면 불필요).
-    아동 실명과 보호자 정보가 보이는 화면이라 공개하지 않는다.
-    """
+    """직원용 현황판. 날짜를 옮겨 다니며 수기로 고칠 수 있다."""
+    # [실습 A08] 직원 확인을 is_staff 만이 아니라 '서명 없는 role 쿠키' 로도 통과시킨다.
+    #            로그인한 보호자가 role=staff 쿠키만 심으면 이 직원 화면에 들어온다.
+    #            @login_required 는 그대로라 request.user 는 실제 사용자이므로 변경 이력 기록은 안 깨진다.
+    if not (request.user.is_staff or request.COOKIES.get('role') == 'staff'):
+        return redirect('/admin/login/?next=/attendance/board/')
     date = _parse_date(request.GET.get('date'), timezone.localdate())
 
     if request.method == 'POST':
@@ -323,13 +324,18 @@ def my(request):
     남의 아이가 보이지 않게 하는 것은 아래 filter(guardian=...) 한 줄이다.
     비고(note)는 직원 메모(병원 등)라 보호자 화면에 내지 않는다.
     """
+    uploaded = None
+    if request.method == 'POST' and request.FILES.get('doc'):
+        # [실습 A08] 형식·크기 검사 없이 올린 파일을 그대로 저장한다 — 원래 이름을 유지한다.
+        uploaded = Upload.objects.create(file=request.FILES['doc']).file.name
     children = Child.objects.filter(active=True, guardian=request.user)
     since = timezone.localdate() - timedelta(days=30)
     records = Attendance.objects.filter(child__in=children, date__gte=since)
     by_child = {c.id: [] for c in children}
     for r in records:
         by_child[r.child_id].append(r)
-    return render(request, 'center/my.html', {'rows': [(c, by_child[c.id]) for c in children]})
+    return render(request, 'center/my.html',
+                  {'rows': [(c, by_child[c.id]) for c in children], 'uploaded': uploaded})
 
 
 # [실습 A06] 전화번호 인증 가입 — 일부러 취약하게 심은 화면이다. main 에는 이 기능이 없다.
