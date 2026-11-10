@@ -419,3 +419,26 @@ class CsvSafetyTests(TestCase):
         # 평범한 값은 건드리지 않는다
         self.assertEqual(_csv_safe('병원 진료'), '병원 진료')
         self.assertEqual(_csv_safe(''), '')
+
+
+class VulnSignupTests(TestCase):
+    """[실습 A06] 전화 인증 가입이 취약하게 심겼는지 확인한다. main 에는 이 화면이 없다."""
+
+    def test_code_is_shown_in_the_response_and_is_three_digits(self):
+        # [실습 A06] 보낸 인증번호가 화면에 그대로 보이고, 3자리라 쉽게 맞힌다.
+        resp = self.client.post('/signup/', {'phone': '010-0000-0001'})
+        m = re.search(r'인증번호 (\d+) 를', resp.content.decode())
+        self.assertIsNotNone(m, '인증번호가 화면에 보이지 않는다')
+        self.assertEqual(len(m.group(1)), 3)
+
+    def test_no_attempt_limit_and_signup_completes(self):
+        # [실습 A06] 틀린 번호를 수십 번 보내도 잠기지 않고, 맞히면 그대로 가입된다.
+        first = self.client.post('/signup/', {'phone': '010-0000-0002'})
+        code = re.search(r'인증번호 (\d+) 를', first.content.decode()).group(1)
+        wrong = '000' if code != '000' else '111'
+        for _ in range(50):
+            resp = self.client.post('/signup/', {'phone': '010-0000-0002', 'code': wrong})
+        self.assertIn('틀렸습니다', resp.content.decode())
+        done = self.client.post('/signup/', {'phone': '010-0000-0002', 'code': code})
+        self.assertIn('가입이 완료', done.content.decode())
+        self.assertTrue(User.objects.filter(username='010-0000-0002').exists())

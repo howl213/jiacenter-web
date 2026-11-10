@@ -17,11 +17,13 @@
 
 import csv
 import hashlib
+import random
 from datetime import datetime, timedelta
 
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -328,3 +330,29 @@ def my(request):
     for r in records:
         by_child[r.child_id].append(r)
     return render(request, 'center/my.html', {'rows': [(c, by_child[c.id]) for c in children]})
+
+
+# [실습 A06] 전화번호 인증 가입 — 일부러 취약하게 심은 화면이다. main 에는 이 기능이 없다.
+# 약점 셋: ① 인증번호가 3자리뿐이라 900번이면 다 맞힌다 ② 틀린 횟수를 세지 않아 잠기지 않는다
+#          ③ 보낸 인증번호를 화면에 그대로 보여준다. 모의 전화번호만 쓴다.
+def signup(request):
+    """전화번호로 인증번호를 받아 가입한다."""
+    message = None
+    phone = request.session.get('signup_phone', '')
+    if request.method == 'POST':
+        phone = request.POST.get('phone', '').strip()
+        code = request.POST.get('code', '').strip()
+        if not code:
+            sent = str(random.randint(100, 999))        # [실습 A06] 3자리
+            request.session['signup_code'] = sent
+            request.session['signup_phone'] = phone
+            # [실습 A06] 보낸 인증번호를 응답에 그대로 노출한다
+            message = f'{phone} 로 인증번호 {sent} 를 보냈습니다. 번호를 입력하세요.'
+        elif code == request.session.get('signup_code'):  # [실습 A06] 시도 횟수 제한 없음
+            User.objects.get_or_create(username=phone or 'unknown')
+            request.session.pop('signup_code', None)
+            request.session.pop('signup_phone', None)
+            message, phone = '가입이 완료되었습니다.', ''
+        else:
+            message = '인증번호가 틀렸습니다. 다시 입력하세요.'
+    return render(request, 'center/signup.html', {'message': message, 'phone': phone})

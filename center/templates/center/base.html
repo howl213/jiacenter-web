@@ -28,6 +28,7 @@
         <button type="submit" class="linkbtn">로그아웃</button>
       </form>
     {% else %}
+      <a class="staff" href="{% url 'signup' %}">회원가입</a>{# [실습 A06] #}
       <a class="staff" href="{% url 'login' %}">보호자 로그인</a>
       <a class="staff" href="{% url 'admin:login' %}?next={% url 'board' %}">직원 로그인</a>
     {% endif %}

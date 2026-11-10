@@ -13,4 +13,5 @@ urlpatterns = [
     path('attendance/export/', views.export, name='export'),
     path('my/', views.my, name='my'),
     path('my/<int:child_id>/', views.my_child, name='my_child'),
+    path('signup/', views.signup, name='signup'),  # [실습 A06]
 ]
