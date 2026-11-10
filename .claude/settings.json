@@ -25,6 +25,18 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/scripts/prompt_reminder.py\"",
+            "timeout": 10,
+            "statusMessage": "작업 규칙 알림"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

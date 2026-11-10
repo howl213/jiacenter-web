@@ -32,7 +32,7 @@
 | 로컬 DB 바꾸기 | 훅 | `.venv/bin/python manage.py migrate` · `.venv/bin/python manage.py seed_dummy` · `sqlite3 db.sqlite3` |
 | 되돌리기 어려운 git | 훅 | `git push --force origin x` · `git reset --hard HEAD~1` · `git branch -D x` · `git filter-repo --path x` |
 | 병합과 main 직접 수정 | 훅 | `gh pr merge 5 --squash` · `git commit -m x` (main 위에서) · `git push origin HEAD:main` |
-| 목표·우선순위 바꾸기 | 대화 | 질문을 먼저 한다 (작업 끝 보고의 질문 상자). 훅 없음 |
+| 목표·우선순위 바꾸기 | 대화 | 질문을 먼저 한다 (작업 끝 보고의 질문 상자). 질문마다 규칙 요약을 넣는 훅(`prompt_reminder.py`)은 있지만 막지는 못한다 — 일깨우기뿐 |
 | 취약판에 어떤 항목을 심을지 | 대화 | 삽입 목록(`docs/vuln-manifest.md`)에 먼저 적고 합의한다. 훅 없음 — 한계 |
 
 "대화" 줄은 Claude 가 지키기로 한 약속일 뿐 기계가 막지 않는다. 그래서 어긋나면 사용자가 바로 말한다.
@@ -102,6 +102,7 @@
 - 클론한 뒤 한 번 `git config core.hooksPath .githooks` — 커밋 직전에 `scripts/check_leaks.sh --staged` 가 돈다
 - 개인정보·금지 파일 판정은 `scripts/check_leaks.sh` **한 곳에서만** 한다. git 훅, CI, 다른 저장소로 파일을 보낼 때(`--external`)가 모두 이 스크립트를 부른다
 - Claude 의 위험 명령(타 저장소 쓰기, 강제 푸시, 실제 DB 마이그레이션, `--no-verify`)은 `scripts/claude_guard.py` 가 `.claude/settings.json` 훅으로 막거나 묻는다
+- 사용자가 질문을 보낼 때마다 `scripts/prompt_reminder.py` 가 작업 규칙 네 줄(목표 확인, 질문엔 설명만, 확인한 것/못 한 것 구분, 푸시·PR 은 시킬 때만)을 다시 넣는다. 일깨우기일 뿐이라 지켰는지는 사람이 본다
 - 두 갈래가 섞이지 않게 `scripts/check_track.py` 가 본다 — main 에는 취약판 표시(`[실습 A0N]`, 배너, 삽입 목록)가 없어야 하고, vuln 에는 답안지(`SECURITY_REVIEW.md`)가 없어야 하며, vuln → main PR 은 막는다
 - 삽입 목록(`docs/vuln-manifest.md`)의 항목마다 같은 이름의 커밋이 있는지는 `scripts/check_manifest.py` 가 본다
 - 팀에게 vuln 코드를 넘길 때는 `scripts/export_for_team.py <새 폴더>` 로 폴더를 만든다(내부 문서·시험·답안지 제외, 심은 곳의 설명 주석 삭제, 검사 통과해야 끝남). 푸시는 사용자 확인 뒤에 직접. 심은 곳의 설명은 반드시 `# [실습 A0N] ...` 주석 줄로만 쓴다
