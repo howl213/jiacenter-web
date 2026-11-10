@@ -469,3 +469,19 @@ class VulnA08Tests(TestCase):
         up = Upload.objects.get()
         # [실습 A08] 형식 검사가 없어 .html 도 그대로 저장되고 원래 이름을 유지한다
         self.assertTrue(up.file.name.endswith('shell.html'), up.file.name)
+
+
+class VulnSessionFixationTests(TestCase):
+    """[실습 A07] 세션 고정 — 주소로 고정한 세션 id 가 로그인 뒤에도 그대로 인증된다. main 에는 없다."""
+
+    def setUp(self):
+        cache.clear()
+        self.mom = User.objects.create_user('mom', password='pw1')
+
+    def test_a_fixed_session_id_survives_login(self):
+        fixed = 'fixedsessionkey0000000000000000a'
+        # [실습 A07] 주소로 세션 id 를 고정하고 로그인한다
+        self.client.post(f'/login/?sessionid={fixed}', {'username': 'mom', 'password': 'pw1'})
+        # 로그인 뒤에도 같은 id 가 인증된 세션이다 (main 은 로그인 때 키를 새로 만들어 이 값이 바뀐다)
+        self.assertEqual(self.client.session.session_key, fixed)
+        self.assertEqual(str(self.client.session.get('_auth_user_id')), str(self.mom.pk))
