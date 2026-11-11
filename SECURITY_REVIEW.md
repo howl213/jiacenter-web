@@ -276,15 +276,15 @@
 
 ### 1단계 — 코드 수정 (인터넷 공개 전 필수)
 
-- [ ] **[H-04]** `DEBUG=False` 일 때 `SECRET_KEY` 환경변수 없으면 기동 실패하도록 변경 — `config/settings.py`
-- [ ] **[H-11]** `DEBUG` 기본값을 `False` 로 뒤집고, 개발 환경에서 명시적으로 켜도록 변경
-- [ ] **[H-05][M-12]** `DEBUG=False` 일 때만 적용되는 보안 설정 추가
+- [x] **[H-04]** `DEBUG=False` 일 때 `SECRET_KEY` 환경변수 없으면 기동 실패하도록 변경 — `config/settings.py` (2026-11-11 코드 대조: `ImproperlyConfigured` 로 기동 중단)
+- [ ] **[H-11]** `DEBUG` 기본값을 `False` 로 뒤집고, 개발 환경에서 명시적으로 켜도록 변경 (2026-11-11 확인: 기본값은 아직 `1`. 바꾸면 개발·시험·CI 실행 방법이 달라져 사용자 결정 대기)
+- [x] **[H-05][M-12]** `DEBUG=False` 일 때만 적용되는 보안 설정 추가
       (`SECURE_SSL_REDIRECT`, `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SECURE_HSTS_SECONDS`)
-- [ ] **[H-19]** 파일 로깅 설정 추가 — 에러 유실 방지
-- [ ] **[M-16]** 세션 만료 설정 (`SESSION_COOKIE_AGE`, `SESSION_EXPIRE_AT_BROWSER_CLOSE`)
-- [ ] **[M-14]** `requirements.txt` 생성 (`pip freeze`)
-- [ ] **[L-18]** CSV 출력 시 수식 문자 이스케이프
-- [ ] **[M-17]** `git init` + 첫 커밋 (`.gitignore` 확인 후)
+- [x] **[H-19]** 파일 로깅 설정 추가 — 에러 유실 방지 (2026-11-11 코드 대조: `logs/error.log`, `.gitignore` 에 `logs/`)
+- [x] **[M-16]** 세션 만료 설정 (`SESSION_COOKIE_AGE`, `SESSION_EXPIRE_AT_BROWSER_CLOSE`)
+- [x] **[M-14]** `requirements.txt` 생성 (`pip freeze`) (2026-11-11: 파일 있음, CI 가 이것으로 설치)
+- [x] **[L-18]** CSV 출력 시 수식 문자 이스케이프 (2026-11-11: `비고` 에만 있던 것을 `이름` 에도, 탭·CR 시작도 추가)
+- [x] **[M-17]** `git init` + 첫 커밋 (`.gitignore` 확인 후)
 
 ### 2단계 — 노출 통제 (A01·A06 대응, 공개 방식 결정 후)
 

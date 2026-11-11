@@ -279,7 +279,7 @@ def board(request):
 def _csv_safe(value):
     """엑셀이 =+-@ 로 시작하는 값을 수식으로 실행하는 것을 막는다(CSV 수식 인젝션)."""
     text = str(value)
-    return "'" + text if text[:1] in ('=', '+', '-', '@') else text
+    return "'" + text if text[:1] in ('=', '+', '-', '@', '\t', '\r') else text
 
 
 @staff_member_required
@@ -298,7 +298,7 @@ def export(request):
     writer.writerow(['날짜', '출석번호', '이름', '입실', '퇴실', '사유', '입력방법', '비고'])
     for a in rows:
         writer.writerow([
-            a.date, a.child.number, a.child.name,
+            a.date, a.child.number, _csv_safe(a.child.name),
             timezone.localtime(a.check_in).strftime('%H:%M') if a.check_in else '',
             timezone.localtime(a.check_out).strftime('%H:%M') if a.check_out else '',
             a.status, a.get_source_display(), _csv_safe(a.note),
