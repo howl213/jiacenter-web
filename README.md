@@ -52,8 +52,12 @@ http://localhost:8000 에서 열린다. 환경변수를 아무것도 설정하�
 | `/about/` | 센터 소개·오시는 길 | 공개 |
 | `/attendance/` | 출결 키오스크 (현관 단말) | 공개 |
 | `/attendance/board/` | 출결 현황판·수기 수정 | 직원 |
+| `/notices/files/<id>/` | 공지 첨부 내려받기(PDF·PNG·JPG) | 공개 |
 | `/attendance/export/?month=YYYY-MM` | 월별 출결 CSV | 직원 |
-| `/admin/` | 공지·프로그램·아동·출결 등록 | 직원 |
+| `/attendance/import/` | 아동 명단 CSV 가져오기(검사만이 기본) | 직원 |
+| `/login/` | 보호자 로그인 | 공개 |
+| `/my/` | 보호자 본인 아이의 최근 30일 출결 | 보호자 |
+| `/admin/` | 공지(첨부 포함)·프로그램·아동·출결·센터 정보 등록 | 직원 |
 
 **운영 화면을 따로 만들지 않고 Django admin 을 그대로 쓴다.** 직원이 공지와 아동을 직접
 입력하는 구조라, 별도 관리 UI 를 만드는 것은 같은 일을 두 번 하는 것이다.
@@ -104,22 +108,29 @@ http://localhost:8000 에서 열린다. 환경변수를 아무것도 설정하�
 ```
 config/              설정 (settings, urls)
 center/              앱 하나에 전부
-├── models.py        Notice, Program, Child, Attendance, NotifyLog
-├── views.py         출결 판정(_toggle)이 핵심
+├── models.py        CenterInfo, Notice, NoticeFile, Program, Child, Attendance, AttendanceLog, NotifyLog
+├── views.py         출결 판정(_toggle)이 핵심. 로그인 시도 제한, 보안 로그 호출도 여기
+├── importer.py      아동 명단 CSV 검사·가져오기
 ├── notify.py        알림톡 — 승인 전까지 기록만
+├── context.py       모든 템플릿에 센터 정보를 넣는다
+├── templatetags/    공지 본문 서식 필터
+├── migrations/
 ├── templates/
-└── static/
+├── static/
+└── test_*.py        시험 (tests.py 와 기능별 파일)
 ```
 
-**앱을 쪼개지 않는다.** 모델 5개 규모에서 나누면 import 만 복잡해진다.
+**앱을 쪼개지 않는다.** 모델 8개 규모에서 나누면 import 만 복잡해진다.
 다른 프로젝트에서 이 앱만 가져다 쓸 일이 생기면 그때 분리한다.
 
 ### 흐름도
 
 | 파일 | 내용 |
 |---|---|
-| `site_flow.svg` | 요청 → URL → 접근 통제 → 뷰 → DB → 템플릿, 사이트 전체 |
-| `attendance_flow.svg` | 출결 한 건이 지나가는 6단계 (위 그림의 확대도) |
+| `site_flow.svg` | 요청 → URL → 접근 통제 → 뷰 → DB → 템플릿, 사이트 전체(11개 주소, 로그인·보호자·가져오기·첨부 포함) |
+| `attendance_flow.svg` | 출결 한 건이 지나가는 7단계: 잠금 확인 → 찾기 → 판정 → 이력·알림 기록 (위 그림의 확대도) |
+
+두 그림의 줄 번호는 2026-11-11 코드 기준이다. 코드가 바뀌면 줄 번호가 어긋나므로 어긋나면 코드가 기준이다.
 
 ### 문서
 
@@ -127,10 +138,10 @@ center/              앱 하나에 전부
 |---|---|
 | `CLAUDE.md` | 작업 지침 — 근거 없는 단언 금지, 하지 않을 것, 코드 방침 |
 | `docs/확인사항.md` | **아직 안 끝난 것(외부 확인·결정 대기) 추적.** 끝나면 지운다 |
+| `docs/개인정보-보호-설계.md` | 아동 개인정보 암호화·익명화·동의 만료 설계 (구현 전) |
 | `docs/외부문의/` | 경기도·지자체·센터에 물어볼 내용 |
 | `SECURITY_REVIEW.md` | OWASP Top 10 점검 보고서 (실습본에는 포함하지 않음) |
 
-코드 줄 번호가 적혀 있으니 소스와 대조하며 보면 된다.
 
 ---
 
@@ -162,7 +173,8 @@ DJANGO_DEBUG=0 DJANGO_SECRET_KEY='...' .venv/bin/python manage.py check --deploy
 `db.sqlite3` 에 **아동 실명, 인식번호, 보호자 연락처**가 평문으로 들어 있다.
 
 - `.gitignore` 로 커밋을 막아 두었다. **절대 커밋하지 않는다.**
-- `logs/error.log` 에도 요청 내용이 섞일 수 있다. DB 와 같은 수준으로 관리한다.
+- `logs/error.log` 에는 요청 내용이 섞일 수 있고, `logs/security.log` 에는 접속 IP 가 남는다. `media/`(공지 첨부)도 커밋하지 않는다. 모두 DB 와 같은 수준으로 관리한다.
+- 암호화·익명화는 아직 없다. 설계는 `docs/개인정보-보호-설계.md`.
 - 운영 PC 는 디스크 암호화(FileVault / BitLocker)를 켠다.
 
 현재 보안 상태는 `SECURITY_REVIEW.md` 참고. OWASP Top 10:2025 기준 점검 결과와 조치
@@ -200,13 +212,13 @@ gh pr create
 
 ### CI
 
-`.github/workflows/test.yml` 이 PR 과 main push 마다 돈다.
+`.github/workflows/` 의 세 파일이 있다.
 
-1. `manage.py test`
-2. `DJANGO_DEBUG=0 manage.py check --deploy`
-
-2번은 아직 미해결 경고가 있어 실패해도 머지를 막지 않는다(`continue-on-error`).
-경고를 다 잡으면 그 줄을 지운다.
+| 파일 | 언제 | 하는 일 |
+|---|---|---|
+| `test.yml` | PR 과 main push | `manage.py test`, bandit(중간 이상), 마이그레이션 누락, `check_leaks.sh --all`, 하네스 스크립트 시험, `DJANGO_DEBUG=0 manage.py check --deploy`(경고가 있으면 실패, vuln 갈래는 제외) |
+| `track.yml` | PR 과 main push | PR 방향, 갈래 검사, 삽입 목록 ↔ 커밋 |
+| `audit.yml` | 매주 월요일, 수동 | pip-audit |
 
 ### PR 본문에 쓰는 것
 
@@ -221,7 +233,7 @@ gh pr create
 
 | | 운영본 | 실습본 |
 |---|---|---|
-| 위치 | `main` | `vuln/practice` (예정) |
+| 위치 | `main` | `vuln/practice` (로컬 폴더에만 있고 푸시하지 않는다) |
 | 목적 | 실제 센터 서비스 | OWASP Top 10 웹해킹 실습 |
 | 데이터 | 실제 (예정) | 모의 값만 |
 | 배포 | 도메인 + HTTPS + 클라우드 | **로컬 전용** |
@@ -302,8 +314,8 @@ OWASP 번호는 Top 10:2025 판이다 (`SECURITY_REVIEW.md` 와 같다).
 
 - 운영 배포 설정 (HTTPS, gunicorn, 정적파일 서빙, 백업)
 - 보안 로그 점검 방법 정하기 (누가·얼마나 자주 보는지)
+- 아동 정보 칸 암호화·조회용 HMAC·동의 만료·익명화 구현 (설계: `docs/개인정보-보호-설계.md`)
 - 개인정보 처리방침 초안
-- 퇴소 아동 익명화 (보관 기간이 정해진 뒤)
 
 **외부 공식 확인 필요**
 
@@ -314,7 +326,7 @@ OWASP 번호는 Top 10:2025 판이다 (`SECURITY_REVIEW.md` 와 같다).
 
 **결정 대기**
 
-- 키 관리 설계
+- 키 관리: 보관 위치·보유자·분실 시 복구 (센터 사용 허락·배포 확정 뒤, 후순위)
 - HSTS preload
 - 보호자 계정 여러 명 연결
 - `/attendance/` 노출 방식 (IP 제한 / 내부망 분리 / 기기 인증)
