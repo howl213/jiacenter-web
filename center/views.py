@@ -29,6 +29,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from . import importer
 from .models import Attendance, AttendanceLog, Child, Notice, Program
 from .notify import send_alimtalk
 
@@ -304,6 +305,19 @@ def export(request):
             a.status, a.get_source_display(), _csv_safe(a.note),
         ])
     return response
+
+
+@staff_member_required
+def import_children(request):
+    """CSV 로 아동 명단 등록. '검사만' 이 기본이라 한 번 미리 본 뒤에 저장한다."""
+    ctx = {'columns': importer.HEADER}
+    if request.method == 'POST' and request.FILES.get('file'):
+        rows, skipped, errors = importer.parse(request.FILES['file'])
+        save = request.POST.get('save') == '1' and not errors and rows
+        if save:
+            Child.objects.bulk_create(rows)
+        ctx.update(rows=rows, skipped=skipped, errors=errors, saved=bool(save))
+    return render(request, 'center/import_children.html', ctx)
 
 
 @login_required
