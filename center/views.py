@@ -25,12 +25,12 @@ from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from . import importer
-from .models import Attendance, AttendanceLog, Child, Notice, Program
+from .models import Attendance, AttendanceLog, Child, Notice, NoticeFile, Program
 from .notify import send_alimtalk
 
 
@@ -54,6 +54,21 @@ def notice_list(request):
 def notice_detail(request, pk):
     return render(request, 'center/notice_detail.html',
                   {'notice': get_object_or_404(Notice, pk=pk)})
+
+
+def notice_file(request, pk):
+    """공지 첨부 내려받기. 형식은 파일 내용으로 다시 판정하고, 브라우저가 추측하지 못하게 막는다.
+
+    PDF 는 항상 내려받기로 준다(브라우저 안에서 스크립트가 도는 것을 피한다). 그림만 화면에 바로 보인다.
+    """
+    nf = get_object_or_404(NoticeFile, pk=pk)
+    mime = nf.mime()
+    resp = FileResponse(nf.file.open('rb'), content_type=mime,
+                        as_attachment=mime == 'application/pdf',
+                        filename=nf.file.name.rsplit('/', 1)[-1])
+    resp['X-Content-Type-Options'] = 'nosniff'
+    resp['Content-Security-Policy'] = "default-src 'none'; sandbox"
+    return resp
 
 
 def program_list(request):
