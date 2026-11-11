@@ -384,12 +384,21 @@ class BoardTests(TestCase):
         self.assertIn('14:30', body)
         self.assertNotIn('2026-04', body)
 
+    def test_csv_export_neutralises_formula_in_name(self):
+        self.client.post('/attendance/board/', {
+            'child': self.child.pk, 'date': '2026-03-14',
+            'check_in': '14:30', 'check_out': '18:00', 'status': '출석', 'note': ''})
+        self.child.name = '=HYPERLINK("x")'
+        self.child.save()
+        body = self.client.get('/attendance/export/?month=2026-03').content.decode('utf-8')
+        self.assertIn("'=HYPERLINK", body)
+
 
 class CsvSafetyTests(TestCase):
     def test_formula_is_neutralised(self):
         from .views import _csv_safe
         # 엑셀이 수식으로 실행하는 네 가지 시작 문자
-        for bad in ['=1+1', '+1', '-1', '@SUM(A1)']:
+        for bad in ['=1+1', '+1', '-1', '@SUM(A1)', '\t=1', '\r=1']:
             self.assertTrue(_csv_safe(bad).startswith("'"), bad)
         # 평범한 값은 건드리지 않는다
         self.assertEqual(_csv_safe('병원 진료'), '병원 진료')
