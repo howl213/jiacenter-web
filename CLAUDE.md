@@ -66,6 +66,10 @@
 
 확인하지 못했으면 **"미확인"이라고 명시한다.** 추측을 사실처럼 적지 않는다.
 
+**단, 보고의 "확인하지 못한 것"에는 이번 작업에서 내가 직접 건드린 것만 쓴다.** `docs/확인사항.md`·README 등에 이미 적힌
+미확인 항목(예: 실제 HTTPS 동작, 배포 환경)은 이번 작업과 관련 있다고 따져 보기 전에는 옮겨 쓰지 않는다. 없으면 "없음",
+애매하면 뺀다. 개발용으로 일부러 둔 설정(`DJANGO_DEBUG` 기본값 1 등)은 위험으로 보고하지 않는다 — 배포 방침은 README 에 이미 있다.
+
 ### 테스트에 대해
 
 `manage.py test` 가 통과했다고 **"괜찮다 / 완벽하다 / 허점 없다"고 말하지 않는다.**
@@ -102,7 +106,7 @@
 - 클론한 뒤 한 번 `git config core.hooksPath .githooks` — 커밋 직전에 `scripts/check_leaks.sh --staged` 가 돈다
 - 개인정보·금지 파일 판정은 `scripts/check_leaks.sh` **한 곳에서만** 한다. git 훅, CI, 다른 저장소로 파일을 보낼 때(`--external`)가 모두 이 스크립트를 부른다
 - Claude 의 위험 명령(타 저장소 쓰기, 강제 푸시, 실제 DB 마이그레이션, `--no-verify`)은 `scripts/claude_guard.py` 가 `.claude/settings.json` 훅으로 막거나 묻는다
-- 사용자가 질문을 보낼 때마다 `scripts/prompt_reminder.py` 가 작업 규칙 네 줄(목표 확인, 질문엔 설명만, 확인한 것/못 한 것 구분, 푸시·PR 은 시킬 때만)을 다시 넣는다. 일깨우기일 뿐이라 지켰는지는 사람이 본다
+- 사용자가 질문을 보낼 때마다 `scripts/prompt_reminder.py` 가 작업 규칙 네 줄(목표 확인, 질문엔 설명만, 확인한 것/못 한 것 구분 — "못 한 것"은 이번에 건드린 것만, 푸시·PR 은 시킬 때만)을 다시 넣는다. 일깨우기일 뿐이라 지켰는지는 사람이 본다
 - 두 갈래가 섞이지 않게 `scripts/check_track.py` 가 본다 — main 에는 취약판 표시(`[실습 A0N]`, 배너, 삽입 목록)가 없어야 하고, vuln 에는 답안지(`SECURITY_REVIEW.md`)가 없어야 하며, vuln → main PR 은 막는다
 - 삽입 목록(`docs/vuln-manifest.md`)의 항목마다 같은 이름의 커밋이 있는지는 `scripts/check_manifest.py` 가 본다
 - 팀에게 vuln 코드를 넘길 때는 `scripts/export_for_team.py <새 폴더>` 로 폴더를 만든다(내부 문서·시험·답안지 제외, 심은 곳의 설명 주석 삭제, 검사 통과해야 끝남). 푸시는 사용자 확인 뒤에 직접. 심은 곳의 설명은 반드시 `# [실습 A0N] ...` 주석 줄로만 쓴다
