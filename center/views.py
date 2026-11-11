@@ -17,6 +17,7 @@
 
 import csv
 import hashlib
+import logging
 from datetime import datetime, timedelta
 
 from django.contrib import admin
@@ -32,6 +33,9 @@ from django.utils import timezone
 from . import importer
 from .models import Attendance, AttendanceLog, Child, Notice, Program
 from .notify import send_alimtalk
+
+# 보안 사건 기록(config/settings.py 의 LOGGING → logs/security.log). 비밀번호·입력한 번호·이름은 남기지 않는다.
+security_log = logging.getLogger('center.security')
 
 
 def home(request):
@@ -95,14 +99,17 @@ def limited_login(login_view):
         user_key, ip_key = f'login:{ip}:{name}', f'login-ip:{ip}'
         if request.method == 'POST' and (_blocked(user_key, LOGIN_MAX_FAILS)
                                          or _blocked(ip_key, LOGIN_IP_MAX_FAILS)):
+            security_log.warning('login_locked ip=%s who=%s', ip, name[:8])
             return HttpResponse('로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.', status=429)
         response = login_view(request)
         if request.method == 'POST':
             if response.status_code == 200:      # 실패하면 폼이 다시 그려져 200
+                security_log.warning('login_failed ip=%s who=%s', ip, name[:8])   # who: 아이디의 해시 앞 8자
                 _count_failure(user_key, LOGIN_WINDOW)
                 _count_failure(ip_key, LOGIN_IP_WINDOW)
             else:                                # 성공하면 302 — 이 아이디의 실패 기록을 지운다
                 cache.delete(user_key)
+                security_log.info('login_ok ip=%s user_id=%s', ip, getattr(request.user, 'pk', None))
         return response
     return wrapped
 
@@ -196,6 +203,7 @@ def kiosk(request):
         kiosk_key = f'kiosk:{request.META.get("REMOTE_ADDR")}'
         if _blocked(kiosk_key, KIOSK_MAX_MISSES):
             message = '잠시 후 다시 눌러 주세요'
+            security_log.warning('kiosk_locked ip=%s', request.META.get('REMOTE_ADDR'))
         else:
             child = _find_child(request.POST.get('child'), request.POST.get('number'))
             # 못 찾으면 DB를 전혀 건드리지 않고 안내만 한다.
@@ -290,6 +298,7 @@ def export(request):
     rows = (Attendance.objects.filter(date__startswith=month)
             .select_related('child').order_by('date', 'child__number'))
 
+    security_log.info('csv_export user_id=%s month=%s rows=%s', request.user.pk, month[:7], len(rows))
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = f'attachment; filename="attendance_{month}.csv"'
     # BOM 을 붙여야 윈도우 엑셀이 더블클릭으로 열 때 한글이 깨지지 않는다.
@@ -316,6 +325,8 @@ def import_children(request):
         save = request.POST.get('save') == '1' and not errors and rows
         if save:
             Child.objects.bulk_create(rows)
+        security_log.info('csv_import user_id=%s saved=%s rows=%s skipped=%s errors=%s', request.user.pk,
+                          bool(save), len(rows), len(skipped), len(errors))
         ctx.update(rows=rows, skipped=skipped, errors=errors, saved=bool(save))
     return render(request, 'center/import_children.html', ctx)
 

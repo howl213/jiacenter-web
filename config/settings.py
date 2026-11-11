@@ -196,12 +196,21 @@ LOGGING = {
             'backupCount': 3,
             'formatter': 'verbose',
         },
+        # 보안 사건(로그인 실패·잠금, 키오스크 잠금, 명단 가져오기). 요청 내용은 남기지 않는다.
+        'security': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'security.log',
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 3,
+            'formatter': 'verbose',
+        },
     },
     'formatters': {
         'verbose': {'format': '{asctime} {levelname} {name} {message}', 'style': '{'},
     },
     'loggers': {
         'django.request': {'handlers': ['file'], 'level': 'ERROR', 'propagate': True},
+        'center.security': {'handlers': ['security'], 'level': 'INFO', 'propagate': False},
         'django.security': {'handlers': ['file'], 'level': 'WARNING', 'propagate': True},
     },
 }
