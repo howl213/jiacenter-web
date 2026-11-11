@@ -1,0 +1,27 @@
+{% extends 'center/base.html' %}
+{% block title %}아동 명단 가져오기{% endblock %}
+{% block content %}
+<h1>아동 명단 CSV 가져오기</h1>
+<p>첫 줄은 <code>{{ columns|join:"," }}</code> 이어야 합니다. 엑셀에서 "CSV UTF-8"로 저장하세요.
+이미 있는 출석번호는 건너뛰며 덮어쓰지 않습니다. 오류가 한 줄이라도 있으면 아무것도 저장하지 않습니다.</p>
+
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+  <input type="file" name="file" accept=".csv" required>
+  <label><input type="checkbox" name="save" value="1"> 검사 후 바로 저장</label>
+  <button type="submit">올리기</button>
+</form>
+
+{% if errors %}
+<section class="warn"><strong>저장하지 않았습니다 — 아래를 고쳐 다시 올려 주세요</strong>
+  <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></section>
+{% elif saved %}
+<p><strong>{{ rows|length }}명을 등록했습니다.</strong></p>
+{% elif rows or skipped %}
+<p>검사만 했습니다(저장 안 함). 등록 예정 {{ rows|length }}명, 건너뜀 {{ skipped|length }}명. 저장하려면 "검사 후 바로 저장"을 체크하고 다시 올리세요.</p>
+{% endif %}
+{% if rows %}
+<table class="board"><thead><tr><th>번호</th><th>이름</th><th>인식번호</th><th>보호자 연락처</th></tr></thead>
+<tbody>{% for c in rows %}<tr><td>{{ c.number }}</td><td>{{ c.name }}</td><td>{{ c.code|default:'' }}</td><td>{{ c.guardian_tel }}</td></tr>{% endfor %}</tbody></table>
+{% endif %}
+{% if skipped %}<p>건너뛴 번호(이미 있음): {{ skipped|join:", " }}</p>{% endif %}
+{% endblock %}
