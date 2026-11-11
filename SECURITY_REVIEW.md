@@ -277,7 +277,7 @@
 ### 1단계 — 코드 수정 (인터넷 공개 전 필수)
 
 - [x] **[H-04]** `DEBUG=False` 일 때 `SECRET_KEY` 환경변수 없으면 기동 실패하도록 변경 — `config/settings.py` (2026-11-11 코드 대조: `ImproperlyConfigured` 로 기동 중단)
-- [ ] **[H-11]** `DEBUG` 기본값을 `False` 로 뒤집고, 개발 환경에서 명시적으로 켜도록 변경 (2026-11-11 확인: 기본값은 아직 `1`. 바꾸면 개발·시험·CI 실행 방법이 달라져 사용자 결정 대기)
+- [ ] **[H-11]** `DEBUG` 기본값을 `False` 로 뒤집고, 개발 환경에서 명시적으로 켜도록 변경 (의도된 개발용 기본값 — 배포 방침은 README 환경변수 절)
 - [x] **[H-05][M-12]** `DEBUG=False` 일 때만 적용되는 보안 설정 추가
       (`SECURE_SSL_REDIRECT`, `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SECURE_HSTS_SECONDS`)
 - [x] **[H-19]** 파일 로깅 설정 추가 — 에러 유실 방지 (2026-11-11 코드 대조: `logs/error.log`, `.gitignore` 에 `logs/`)
