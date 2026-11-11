@@ -287,6 +287,7 @@ def board(request):
             AttendanceLog.add(rec, before, Attendance.BY_STAFF, request.user)
         return redirect(f"{request.path}?date={date}")
 
+    security_log.info('board_view user_id=%s date=%s', request.user.pk, date)   # 아동 실명이 보이는 화면의 열람 기록
     records = {a.child_id: a for a in Attendance.objects.filter(date=date)}
     children = [(c, records.get(c.id)) for c in Child.objects.filter(active=True)]
     # 그날 이전인데 퇴실이 비어 있는 기록 = 찍고 그냥 간 경우.
@@ -354,6 +355,7 @@ def my(request):
     남의 아이가 보이지 않게 하는 것은 아래 filter(guardian=...) 한 줄이다.
     비고(note)는 직원 메모(병원 등)라 보호자 화면에 내지 않는다.
     """
+    security_log.info('my_view user_id=%s', request.user.pk)
     children = Child.objects.filter(active=True, guardian=request.user)
     since = timezone.localdate() - timedelta(days=30)
     records = Attendance.objects.filter(child__in=children, date__gte=since)

@@ -46,6 +46,18 @@ class SecurityLogTests(TestCase):
         self.assertIn('csv_export', cm.output[0])
         self.assertIn('month=2026-03', cm.output[0])
 
+    def test_board_and_my_views_are_logged_without_names(self):
+        from .models import Child
+        Child.objects.create(number=1, name='홍길동')
+        self.client.login(username='staff', password='pw')
+        with self.assertLogs('center.security', 'INFO') as cm:
+            self.client.get('/attendance/board/?date=2026-03-14')
+            self.client.get('/my/')
+        self.assertIn('board_view', cm.output[0])
+        self.assertIn('date=2026-03-14', cm.output[0])
+        self.assertIn('my_view', cm.output[1])
+        self.assertNotIn('홍길동', ''.join(cm.output))
+
     def test_csv_import_is_logged_with_counts_only(self):
         self.client.login(username='staff', password='pw')
         f = SimpleUploadedFile('a.csv', '출석번호,이름,인식번호,보호자연락처\n1,홍길동,,\n'.encode())
