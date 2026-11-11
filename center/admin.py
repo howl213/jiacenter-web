@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from .models import Attendance, AttendanceLog, CenterInfo, Child, NotifyLog, Notice, Program
+from .models import (ATTACH_MAX_COUNT, Attendance, AttendanceLog, CenterInfo, Child, NoticeFile,
+                     NotifyLog, Notice, Program)
 
 
 @admin.register(CenterInfo)
@@ -14,8 +15,15 @@ class CenterInfoAdmin(admin.ModelAdmin):
         return False
 
 
+class NoticeFileInline(admin.TabularInline):
+    model = NoticeFile
+    extra = 1
+    max_num = ATTACH_MAX_COUNT   # 공지당 3개까지(PDF·PNG·JPG, 5MB)
+
+
 @admin.register(Notice)
 class NoticeAdmin(admin.ModelAdmin):
+    inlines = [NoticeFileInline]
     list_display = ['title', 'pinned', 'created_at']
     list_editable = ['pinned']
     fieldsets = [(None, {

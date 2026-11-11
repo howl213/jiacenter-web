@@ -5,5 +5,8 @@
 <h1>{{ notice.title }}</h1>
 <time class="meta">{{ notice.created_at|date:'Y년 m월 d일' }}</time>
 <div class="body">{{ notice.body|notice_format }}</div>
+{% if notice.files.all %}
+<ul class="files">{% for f in notice.files.all %}<li><a href="{% url 'notice_file' f.pk %}">{{ f }}</a></li>{% endfor %}</ul>
+{% endif %}
 <p><a class="more" href="{% url 'notices' %}">← 목록으로</a></p>
 {% endblock %}

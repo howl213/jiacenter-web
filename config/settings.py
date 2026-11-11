@@ -141,6 +141,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# 첨부 파일 저장 위치. URL 로 직접 내보내지 않는다(center.views.notice_file 만 내려보낸다).
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Email
