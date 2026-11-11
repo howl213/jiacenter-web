@@ -20,8 +20,18 @@ class PromptReminder(unittest.TestCase):
         self.assertEqual(r.returncode, 0)
         out = json.loads(r.stdout)['hookSpecificOutput']
         self.assertEqual(out['hookEventName'], 'UserPromptSubmit')
-        for must in ['목표 ①', '설명만 하고 멈춘다', '확인하지 못한 것', '시킬 때만']:
+        for must in ['목표 ①', '설명만 하고 멈춘다', '확인하지 못한 것', '시킬 때만', '먼저 묻는다']:
             self.assertIn(must, out['additionalContext'])
+
+    def test_rules_are_identical_to_claude_md(self):
+        # CLAUDE.md 2절의 네 줄이 원본이고 훅은 그대로 복사본이다. 한쪽만 고치면 여기서 실패한다.
+        md = (ROOT / 'CLAUDE.md').read_text(encoding='utf-8')
+        section = md[md.index('## 2. 작업 규칙'):md.index('### 테스트에 대해')]
+        original = [l for l in section.splitlines() if l[:3] in ('1. ', '2. ', '3. ', '4. ')]
+        out = json.loads(self.run_with('{}').stdout)['hookSpecificOutput']['additionalContext']
+        injected = [l for l in out.splitlines() if l[:3] in ('1. ', '2. ', '3. ', '4. ')]
+        self.assertEqual(len(original), 4)
+        self.assertEqual(original, injected)
 
     def test_does_not_block_on_broken_input(self):
         for stdin in ['', 'not json', '\x00']:
