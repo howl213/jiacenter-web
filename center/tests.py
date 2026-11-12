@@ -404,6 +404,18 @@ class PostBoardTests(TestCase):
         self.client.post(f'/board/posts/{post.pk}/', {'body': '첫 댓글'})
         self.assertIn('첫 댓글', self.client.get(f'/board/posts/{post.pk}/').content.decode())
 
+    def test_empty_post_shows_error_and_creates_nothing(self):
+        self.client.login(username='writer', password='pw-strong-9271')
+        resp = self.client.post('/board/posts/new/', {'title': '', 'body': ''})
+        self.assertIn('제목과 내용', resp.content.decode())
+        self.assertFalse(Post.objects.exists())
+
+    def test_posts_visible_in_admin(self):
+        User.objects.create_superuser('boss', 'a@b.c', 'pw')
+        self.client.login(username='boss', password='pw')
+        self.assertEqual(self.client.get('/admin/center/post/').status_code, 200)
+        self.assertEqual(self.client.get('/admin/center/comment/').status_code, 200)
+
 
 class EmbedTests(TestCase):
     def setUp(self):

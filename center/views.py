@@ -359,8 +359,6 @@ def import_children(request):
 def my(request):
     """보호자가 보는 \"내 아이\" 출결. 최근 30일.
 
-    URL 에 아동 id 를 받지 않고 로그인한 사용자에게 연결된 아동만 조회한다.
-    남의 아이가 보이지 않게 하는 것은 아래 filter(guardian=...) 한 줄이다.
     비고(note)는 직원 메모(병원 등)라 보호자 화면에 내지 않는다.
     """
     security_log.info('my_view user_id=%s', request.user.pk)
@@ -411,13 +409,15 @@ def post_list(request):
 @login_required
 def post_create(request):
     """글쓰기. 로그인한 사람이면 누구나."""
+    error = None
     if request.method == 'POST':
         title = request.POST.get('title', '').strip()[:200]
         body = request.POST.get('body', '').strip()
         if title and body:
             post = Post.objects.create(title=title, body=body, author=request.user)
             return redirect('post_detail', pk=post.pk)
-    return render(request, 'center/post_form.html', {})
+        error = '제목과 내용을 입력해 주세요.'
+    return render(request, 'center/post_form.html', {'error': error})
 
 
 def post_detail(request, pk):
