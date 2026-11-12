@@ -48,12 +48,15 @@ def home(request):
 
 
 def notice_list(request):
-    # 검색어는 ORM 필터로만 쓴다. 값이 SQL 문장과 분리되어 전달되므로 문자열을 이어 붙이지 않는다.
-    # NUL 문자는 SQLite 의 LIKE 가 거기서 패턴을 끊어 "전부 일치"가 되므로 미리 뺀다.
-    q = request.GET.get('q', '').replace('\x00', '').strip()[:100]
-    notices = Notice.objects.all()
+    q = request.GET.get('q', '').strip()[:100]
     if q:
-        notices = notices.filter(Q(title__icontains=q) | Q(body__icontains=q))
+        # [실습 A03] 검색어를 SQL 문장에 그대로 끼워 넣는다. ' OR '1'='1 이나 UNION SELECT 같은
+        # [실습 A03] 입력이 문장을 바꿔 다른 테이블까지 읽을 수 있다(SQL 삽입).
+        sql = ("SELECT * FROM center_notice WHERE title LIKE '%%%s%%' OR body LIKE '%%%s%%' "
+               "ORDER BY pinned DESC, created_at DESC" % (q, q))
+        notices = list(Notice.objects.raw(sql))
+    else:
+        notices = Notice.objects.all()
     # get_page 는 ?page 가 없거나 숫자가 아니어도 예외 없이 1페이지를 준다.
     page = Paginator(notices, 10).get_page(request.GET.get('page'))
     return render(request, 'center/notice_list.html', {'page': page, 'q': q})

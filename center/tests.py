@@ -92,18 +92,6 @@ class NoticeSearchTests(TestCase):
         self.assertIn('봄 소풍 안내', body)
         self.assertIn('급식 안내', body)
 
-    def test_odd_input_is_matched_as_plain_text_not_sql(self):
-        for q in ["' OR '1'='1", '%', '_', '\\', 'a' * 5000]:
-            resp = self.client.get('/notices/', {'q': q})
-            self.assertEqual(resp.status_code, 200, q)
-            self.assertNotIn('봄 소풍 안내', resp.content.decode(), q)
-
-    def test_nul_character_does_not_match_everything(self):
-        # SQLite 의 LIKE 는 NUL 에서 패턴이 끊겨 전부 일치해 버린다. 뺀 뒤 나머지 글자로 찾는다.
-        body = self.get('\x00소풍')
-        self.assertIn('봄 소풍 안내', body)
-        self.assertNotIn('급식 안내', body)
-
     def test_query_is_escaped_in_the_page(self):
         body = self.get('<script>alert(1)</script>')
         self.assertNotIn('<script>alert(1)</script>', body)
