@@ -14,8 +14,6 @@
     <a href="{% url 'program_list' %}">프로그램</a>
     <a href="{% url 'about' %}">센터 소개</a>
     <a href="{% url 'kiosk' %}">출결</a>
-    <a href="{% url 'post_list' %}">게시판</a>
-    <a href="{% url 'embed' %}">임베드</a>
     {% if user.is_staff %}
       <a class="staff" href="{% url 'board' %}">출결 관리</a>
       <span class="who">{{ user.get_username }} 님</span>
@@ -30,7 +28,6 @@
       </form>
     {% else %}
       <a class="staff" href="{% url 'login' %}">보호자 로그인</a>
-      <a class="staff" href="{% url 'signup' %}">회원가입</a>
       <a class="staff" href="{% url 'admin:login' %}?next={% url 'board' %}">직원 로그인</a>
     {% endif %}
   </nav>

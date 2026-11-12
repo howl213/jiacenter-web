@@ -14,9 +14,4 @@ urlpatterns = [
     path('attendance/export/', views.export, name='export'),
     path('attendance/import/', views.import_children, name='import_children'),
     path('my/', views.my, name='my'),
-    path('signup/', views.signup, name='signup'),
-    path('board/posts/', views.post_list, name='post_list'),
-    path('board/posts/new/', views.post_create, name='post_create'),
-    path('board/posts/<int:pk>/', views.post_detail, name='post_detail'),
-    path('embed/', views.embed, name='embed'),
 ]

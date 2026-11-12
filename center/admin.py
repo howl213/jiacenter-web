@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import (ATTACH_MAX_COUNT, Attendance, AttendanceLog, CenterInfo, Child, Comment,
-                     NoticeFile, NotifyLog, Notice, Post, Program)
+from .models import (ATTACH_MAX_COUNT, Attendance, AttendanceLog, CenterInfo, Child, NoticeFile,
+                     NotifyLog, Notice, Program)
 
 
 @admin.register(CenterInfo)
@@ -77,15 +77,3 @@ class AttendanceLogAdmin(admin.ModelAdmin):
 class NotifyLogAdmin(admin.ModelAdmin):
     list_display = ['created_at', 'template', 'tel', 'sent']
     readonly_fields = ['created_at']
-
-
-# 실습본 전용(게시판). 권한 상승으로 직원이 된 계정이 admin 까지 닿았을 때 보이게 등록한다.
-@admin.register(Post)
-class PostAdmin(admin.ModelAdmin):
-    list_display = ['title', 'author', 'created_at']
-    search_fields = ['title', 'body']
-
-
-@admin.register(Comment)
-class CommentAdmin(admin.ModelAdmin):
-    list_display = ['post', 'author', 'created_at']
