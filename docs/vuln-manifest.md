@@ -34,10 +34,6 @@ OWASP 번호는 Top 10:2025 기준이되, 정확한 분류는 팀이 진단하�
 
 ## 예정 (아직 안 심음 — 합의되면 하나씩 올린다)
 
-아래는 계획이라 백틱 커밋 표기(`vuln(A0N)`)를 쓰지 않는다. 심은 뒤에 위 "심은 것" 표로 옮긴다.
-
-- A01 (IDOR): `center/views.py` 의 `my()` 에서 `guardian=request.user` 범위 제한 제거 — 이미 있는 기능
-- A03 (SQLi): `center/views.py` 의 `notice_list` 검색을 원시 SQL 로 교체 — 이미 있는 기능
-- A03 (XSS): `center/templatetags/notice_format.py` 의 escape 제거 — 이미 있는 기능
-- 게시판·댓글 (저장형 XSS·IDOR·CSRF): vuln 에 새 기능으로 구현
-- A01 (SSRF): 외부 임베드 기능을 만든 뒤 URL 검증 생략
+지금까지 계획한 항목(IDOR·SQLi·공지 XSS·게시판 XSS·SSRF·회원가입 권한 상승)은 모두 위
+"심은 것" 표에 올렸다. 더 심을 항목이 생기면 여기에 백틱 커밋 표기(`vuln(A0N)`) 없이 적고,
+심은 뒤 "심은 것" 표로 옮긴다.
