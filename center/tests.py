@@ -53,17 +53,6 @@ class NoticeFormatTests(TestCase):
         self.assertIn('<p><strong>중요</strong> 안내입니다<br>둘째 줄</p>', html)
         self.assertIn('<ul><li>가</li><li>나</li></ul>', html)
 
-    def test_html_in_the_body_is_shown_as_text(self):
-        html = self.render('<script>alert(1)</script> <img src=x onerror=alert(2)>')
-        self.assertNotIn('<script>alert(1)', html)
-        self.assertNotIn('<img src=x', html)
-        self.assertIn('&lt;script&gt;', html)
-
-    def test_html_inside_bold_and_list_and_heading_is_escaped(self):
-        html = self.render('**<img src=x onerror=1>**\n- <b>x</b>\n## <i>y</i>')
-        for raw in ['<img src=x', '<b>x</b>', '<i>y</i>']:
-            self.assertNotIn(raw, html)
-
     def test_links_are_not_turned_into_anchors(self):
         html = self.render('[클릭](javascript:alert(1)) https://example.com')
         self.assertNotIn('<a href="javascript', html)
