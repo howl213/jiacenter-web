@@ -21,6 +21,7 @@ OWASP 번호는 Top 10:2025 기준이되, 정확한 분류는 팀이 진단하�
 | A01 | `vuln(A01) 내 아이 조회 — URL 의 child id 로 소유자 검사 없이 조회` | `center/views.py` `my()` | `/my/?child=<남의 id>` 로 로그인한 누구나 남의 아이 출결을 본다(IDOR). 기본(파라미터 없음)은 여전히 내 아이만 |
 | A03 | `vuln(A03) 공지 검색 — 검색어를 원시 SQL 에 끼워 넣음` | `center/views.py` `notice_list()` | 검색어를 SQL 문장에 문자열로 이어 붙인다. `' OR '1'='1` · `UNION SELECT` 로 다른 테이블(예: auth_user)까지 읽는다(SQL 삽입) |
 | A03 | `vuln(A03) 공지 서식 — 본문 escape 제거` | `center/templatetags/notice_format.py` `inline()` | 공지 본문의 escape 를 빼 사용자 HTML 이 그대로 나간다. `<script>` 넣은 공지를 여는 모든 사람 브라우저에서 실행(저장형 XSS) |
+| A01 | `vuln(A01) 외부 임베드 — 사용자 URL 을 서버가 검증 없이 가져옴` | `center/views.py` `embed()` | `/embed/?url=` 로 서버가 임의 URL 을 가져온다. 스킴·주소 제한이 없어 `http://localhost`·`http://169.254.169.254`·`file:///...` 등 내부 자원을 읽는다(SSRF) |
 
 ### 딸려온 약점 (일부러 심은 건 아니지만 알아둘 것)
 

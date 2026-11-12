@@ -15,6 +15,7 @@
     <a href="{% url 'about' %}">센터 소개</a>
     <a href="{% url 'kiosk' %}">출결</a>
     <a href="{% url 'post_list' %}">게시판</a>
+    <a href="{% url 'embed' %}">임베드</a>
     {% if user.is_staff %}
       <a class="staff" href="{% url 'board' %}">출결 관리</a>
       <span class="who">{{ user.get_username }} 님</span>

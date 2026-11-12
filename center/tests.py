@@ -405,6 +405,19 @@ class PostBoardTests(TestCase):
         self.assertIn('첫 댓글', self.client.get(f'/board/posts/{post.pk}/').content.decode())
 
 
+class EmbedTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        User.objects.create_user('u', password='pw-strong-9271')
+
+    def test_requires_login(self):
+        self.assertEqual(self.client.get('/embed/').status_code, 302)
+
+    def test_form_renders_when_logged_in(self):
+        self.client.login(username='u', password='pw-strong-9271')
+        self.assertEqual(self.client.get('/embed/').status_code, 200)
+
+
 class CsvSafetyTests(TestCase):
     def test_formula_is_neutralised(self):
         from .views import _csv_safe

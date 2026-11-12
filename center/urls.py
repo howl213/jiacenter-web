@@ -18,4 +18,5 @@ urlpatterns = [
     path('board/posts/', views.post_list, name='post_list'),
     path('board/posts/new/', views.post_create, name='post_create'),
     path('board/posts/<int:pk>/', views.post_detail, name='post_detail'),
+    path('embed/', views.embed, name='embed'),
 ]

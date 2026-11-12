@@ -18,6 +18,7 @@
 import csv
 import hashlib
 import logging
+import urllib.request
 from datetime import datetime, timedelta
 
 from django.contrib import admin
@@ -434,3 +435,19 @@ def post_detail(request, pk):
     for c in comments:
         c.safe_body = mark_safe(c.body)
     return render(request, 'center/post_detail.html', {'post': post, 'comments': comments})
+
+
+@login_required
+def embed(request):
+    """외부 페이지 미리보기. 실습본 전용 — URL 을 넣으면 서버가 그 페이지 앞부분을 가져와 보여준다."""
+    url = request.GET.get('url', '').strip()
+    preview = error = None
+    if url:
+        # [실습 A01] 사용자가 준 URL 을 서버가 그대로 가져온다. 스킴·주소 제한이 없어 내부 자원
+        # [실습 A01] (http://localhost, http://169.254.169.254, file:///etc/passwd 등)도 읽는다 = SSRF.
+        try:
+            with urllib.request.urlopen(url, timeout=3) as r:  # nosec B310
+                preview = r.read(2000).decode('utf-8', 'replace')
+        except Exception as e:
+            error = str(e)
+    return render(request, 'center/embed.html', {'url': url, 'preview': preview, 'error': error})
