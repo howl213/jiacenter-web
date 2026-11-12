@@ -360,7 +360,13 @@ def my(request):
     비고(note)는 직원 메모(병원 등)라 보호자 화면에 내지 않는다.
     """
     security_log.info('my_view user_id=%s', request.user.pk)
-    children = Child.objects.filter(active=True, guardian=request.user)
+    cid = request.GET.get('child')
+    if cid:
+        # [실습 A01] URL 의 child id 로 바로 조회한다. 소유자(guardian) 검사가 없어
+        # [실습 A01] 로그인만 했으면 ?child=<남의 id> 로 남의 아이 출결이 보인다(IDOR).
+        children = Child.objects.filter(active=True, pk=_pk(cid))
+    else:
+        children = Child.objects.filter(active=True, guardian=request.user)
     since = timezone.localdate() - timedelta(days=30)
     records = Attendance.objects.filter(child__in=children, date__gte=since)
     by_child = {c.id: [] for c in children}
