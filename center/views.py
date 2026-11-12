@@ -22,7 +22,9 @@ from datetime import datetime, timedelta
 
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -363,3 +365,27 @@ def my(request):
     for r in records:
         by_child[r.child_id].append(r)
     return render(request, 'center/my.html', {'rows': [(c, by_child[c.id]) for c in children]})
+
+
+def signup(request):
+    """보호자 회원가입. 실습본 전용 — main 에는 없는 기능이다.
+
+    가입하면 바로 로그인되어 '내 아이'(/my/) 화면으로 간다.
+    """
+    error = None
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        if not username or not password:
+            error = '아이디와 비밀번호를 입력해 주세요.'
+        elif User.objects.filter(username=username).exists():
+            error = '이미 있는 아이디입니다.'
+        else:
+            user = User.objects.create_user(username=username, password=password)
+            # [실습 A07] 가입 요청이 보낸 is_staff 를 그대로 믿는다. 숨겨 보내면 직원 권한으로 가입된다.
+            if request.POST.get('is_staff'):
+                user.is_staff = True
+                user.save(update_fields=['is_staff'])
+            login(request, user)
+            return redirect('my')
+    return render(request, 'center/signup.html', {'error': error})

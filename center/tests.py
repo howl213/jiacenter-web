@@ -394,6 +394,23 @@ class BoardTests(TestCase):
         self.assertIn("'=HYPERLINK", body)
 
 
+class SignupTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_signup_creates_account_and_logs_in(self):
+        resp = self.client.post('/signup/', {'username': '보호자1', 'password': 'pw-strong-9271'})
+        self.assertRedirects(resp, '/my/', fetch_redirect_response=False)
+        self.assertTrue(User.objects.filter(username='보호자1').exists())
+
+    def test_blank_or_duplicate_is_rejected(self):
+        User.objects.create_user('dup', password='x')
+        self.client.post('/signup/', {'username': 'dup', 'password': 'y'})
+        self.assertEqual(User.objects.filter(username='dup').count(), 1)
+        self.client.post('/signup/', {'username': '', 'password': 'z'})
+        self.assertEqual(User.objects.filter(username='').count(), 0)
+
+
 class CsvSafetyTests(TestCase):
     def test_formula_is_neutralised(self):
         from .views import _csv_safe

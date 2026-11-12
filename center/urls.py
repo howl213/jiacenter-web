@@ -14,4 +14,5 @@ urlpatterns = [
     path('attendance/export/', views.export, name='export'),
     path('attendance/import/', views.import_children, name='import_children'),
     path('my/', views.my, name='my'),
+    path('signup/', views.signup, name='signup'),
 ]
