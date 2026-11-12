@@ -1,0 +1,10 @@
+{% extends 'center/base.html' %}
+{% block title %}글쓰기{% endblock %}
+{% block content %}
+<h1>글쓰기</h1>
+<form method="post">{% csrf_token %}
+  <p><label>제목 <input type="text" name="title" autofocus></label></p>
+  <p><label>내용<br><textarea name="body" rows="8" cols="40"></textarea></label></p>
+  <button type="submit">올리기</button>
+</form>
+{% endblock %}

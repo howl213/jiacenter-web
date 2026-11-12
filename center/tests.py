@@ -10,7 +10,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog
+from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog, Post
 
 
 class PageTests(TestCase):
@@ -409,6 +409,23 @@ class SignupTests(TestCase):
         self.assertEqual(User.objects.filter(username='dup').count(), 1)
         self.client.post('/signup/', {'username': '', 'password': 'z'})
         self.assertEqual(User.objects.filter(username='').count(), 0)
+
+
+class PostBoardTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.user = User.objects.create_user('writer', password='pw-strong-9271')
+
+    def test_create_requires_login(self):
+        self.assertEqual(self.client.get('/board/posts/new/').status_code, 302)
+
+    def test_create_list_and_comment(self):
+        self.client.login(username='writer', password='pw-strong-9271')
+        self.client.post('/board/posts/new/', {'title': '첫 글', 'body': '안녕하세요'})
+        post = Post.objects.get()
+        self.assertIn('첫 글', self.client.get('/board/posts/').content.decode())
+        self.client.post(f'/board/posts/{post.pk}/', {'body': '첫 댓글'})
+        self.assertIn('첫 댓글', self.client.get(f'/board/posts/{post.pk}/').content.decode())
 
 
 class CsvSafetyTests(TestCase):

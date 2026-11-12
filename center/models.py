@@ -186,6 +186,38 @@ class AttendanceLog(models.Model):
                                via=via, before=before, after=after)
 
 
+class Post(models.Model):
+    """게시판 글. 실습본 전용 — main 에는 없는 기능이다."""
+    title = models.CharField('제목', max_length=200)
+    body = models.TextField('내용')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                               on_delete=models.SET_NULL, related_name='posts', verbose_name='작성자')
+    created_at = models.DateTimeField('작성일', auto_now_add=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = '게시글'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+class Comment(models.Model):
+    """게시판 댓글. 실습본 전용."""
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments', verbose_name='글')
+    body = models.TextField('내용')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                               on_delete=models.SET_NULL, related_name='comments', verbose_name='작성자')
+    created_at = models.DateTimeField('작성일', auto_now_add=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = '댓글'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return self.body[:20]
+
+
 class NotifyLog(models.Model):
     """알림톡 API 승인 전에는 전송 대신 여기에만 기록한다."""
     tel = models.CharField('수신번호', max_length=20)

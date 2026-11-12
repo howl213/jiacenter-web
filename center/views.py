@@ -31,9 +31,11 @@ from django.db.models import Q
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 
 from . import importer
-from .models import Attendance, AttendanceLog, Child, Notice, NoticeFile, Program
+from .models import (Attendance, AttendanceLog, Child, Comment, Notice, NoticeFile,
+                     Post, Program)
 from .notify import send_alimtalk
 
 # 보안 사건 기록(config/settings.py 의 LOGGING → logs/security.log). 비밀번호·입력한 번호·이름은 남기지 않는다.
@@ -389,3 +391,37 @@ def signup(request):
             login(request, user)
             return redirect('my')
     return render(request, 'center/signup.html', {'error': error})
+
+
+def post_list(request):
+    """게시판 글 목록. 실습본 전용."""
+    return render(request, 'center/post_list.html', {'posts': Post.objects.all()})
+
+
+@login_required
+def post_create(request):
+    """글쓰기. 로그인한 사람이면 누구나."""
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()[:200]
+        body = request.POST.get('body', '').strip()
+        if title and body:
+            post = Post.objects.create(title=title, body=body, author=request.user)
+            return redirect('post_detail', pk=post.pk)
+    return render(request, 'center/post_form.html', {})
+
+
+def post_detail(request, pk):
+    """글 + 댓글. 로그인한 사람이 댓글을 단다."""
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == 'POST' and request.user.is_authenticated:
+        body = request.POST.get('body', '').strip()
+        if body:
+            Comment.objects.create(post=post, body=body, author=request.user)
+        return redirect('post_detail', pk=pk)
+    # [실습 A03] 글·댓글 본문을 이스케이프 없이 그대로 화면에 낸다(mark_safe). 올려 둔 <script> 가
+    # [실습 A03] 그 글을 여는 모든 사람의 브라우저에서 실행된다 = 저장형 XSS.
+    post.safe_body = mark_safe(post.body)
+    comments = list(post.comments.all())
+    for c in comments:
+        c.safe_body = mark_safe(c.body)
+    return render(request, 'center/post_detail.html', {'post': post, 'comments': comments})
