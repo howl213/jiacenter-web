@@ -439,3 +439,15 @@ class CsvSafetyTests(TestCase):
         # 평범한 값은 건드리지 않는다
         self.assertEqual(_csv_safe('병원 진료'), '병원 진료')
         self.assertEqual(_csv_safe(''), '')
+
+
+class SeedDummyTests(TestCase):
+    def test_seed_is_idempotent_and_guardians_cannot_login(self):
+        from django.core.management import call_command
+        call_command('seed_dummy')
+        n = (Child.objects.count(), Notice.objects.count(), Post.objects.count())
+        self.assertTrue(all(n))
+        call_command('seed_dummy')   # 두 번째 실행에도 늘지 않는다
+        self.assertEqual(n, (Child.objects.count(), Notice.objects.count(), Post.objects.count()))
+        # 보호자 계정은 로그인용이 아니다(IDOR 표적 데이터)
+        self.assertFalse(User.objects.get(username='김보호').has_usable_password())
