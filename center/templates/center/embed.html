@@ -1,0 +1,11 @@
+{% extends 'center/base.html' %}
+{% block title %}외부 임베드{% endblock %}
+{% block content %}
+<h1>외부 페이지 미리보기</h1>
+<form method="get">
+  <p><label>URL <input type="text" name="url" value="{{ url }}" size="50" autofocus></label></p>
+  <button type="submit">가져오기</button>
+</form>
+{% if error %}<p class="error">가져오기 실패: {{ error }}</p>{% endif %}
+{% if preview %}<h2>미리보기</h2><pre>{{ preview }}</pre>{% endif %}
+{% endblock %}

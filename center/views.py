@@ -18,20 +18,25 @@
 import csv
 import hashlib
 import logging
+import urllib.request
 from datetime import datetime, timedelta
 
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 
 from . import importer
-from .models import Attendance, AttendanceLog, Child, Notice, NoticeFile, Program
+from .models import (Attendance, AttendanceLog, Child, Comment, Notice, NoticeFile,
+                     Post, Program)
 from .notify import send_alimtalk
 
 # 보안 사건 기록(config/settings.py 의 LOGGING → logs/security.log). 비밀번호·입력한 번호·이름은 남기지 않는다.
@@ -44,12 +49,15 @@ def home(request):
 
 
 def notice_list(request):
-    # 검색어는 ORM 필터로만 쓴다. 값이 SQL 문장과 분리되어 전달되므로 문자열을 이어 붙이지 않는다.
-    # NUL 문자는 SQLite 의 LIKE 가 거기서 패턴을 끊어 "전부 일치"가 되므로 미리 뺀다.
-    q = request.GET.get('q', '').replace('\x00', '').strip()[:100]
-    notices = Notice.objects.all()
+    q = request.GET.get('q', '').strip()[:100]
     if q:
-        notices = notices.filter(Q(title__icontains=q) | Q(body__icontains=q))
+        # [실습 A03] 검색어를 SQL 문장에 그대로 끼워 넣는다. ' OR '1'='1 이나 UNION SELECT 같은
+        # [실습 A03] 입력이 문장을 바꿔 다른 테이블까지 읽을 수 있다(SQL 삽입).
+        sql = ("SELECT * FROM center_notice WHERE title LIKE '%%%s%%' OR body LIKE '%%%s%%' "
+               "ORDER BY pinned DESC, created_at DESC" % (q, q))
+        notices = list(Notice.objects.raw(sql))
+    else:
+        notices = Notice.objects.all()
     # get_page 는 ?page 가 없거나 숫자가 아니어도 예외 없이 1페이지를 준다.
     page = Paginator(notices, 10).get_page(request.GET.get('page'))
     return render(request, 'center/notice_list.html', {'page': page, 'q': q})
@@ -351,15 +359,95 @@ def import_children(request):
 def my(request):
     """보호자가 보는 \"내 아이\" 출결. 최근 30일.
 
-    URL 에 아동 id 를 받지 않고 로그인한 사용자에게 연결된 아동만 조회한다.
-    남의 아이가 보이지 않게 하는 것은 아래 filter(guardian=...) 한 줄이다.
     비고(note)는 직원 메모(병원 등)라 보호자 화면에 내지 않는다.
     """
     security_log.info('my_view user_id=%s', request.user.pk)
-    children = Child.objects.filter(active=True, guardian=request.user)
+    cid = request.GET.get('child')
+    if cid:
+        # [실습 A01] URL 의 child id 로 바로 조회한다. 소유자(guardian) 검사가 없어
+        # [실습 A01] 로그인만 했으면 ?child=<남의 id> 로 남의 아이 출결이 보인다(IDOR).
+        children = Child.objects.filter(active=True, pk=_pk(cid))
+    else:
+        children = Child.objects.filter(active=True, guardian=request.user)
     since = timezone.localdate() - timedelta(days=30)
     records = Attendance.objects.filter(child__in=children, date__gte=since)
     by_child = {c.id: [] for c in children}
     for r in records:
         by_child[r.child_id].append(r)
     return render(request, 'center/my.html', {'rows': [(c, by_child[c.id]) for c in children]})
+
+
+def signup(request):
+    """보호자 회원가입. 실습본 전용 — main 에는 없는 기능이다.
+
+    가입하면 바로 로그인되어 '내 아이'(/my/) 화면으로 간다.
+    """
+    error = None
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        if not username or not password:
+            error = '아이디와 비밀번호를 입력해 주세요.'
+        elif User.objects.filter(username=username).exists():
+            error = '이미 있는 아이디입니다.'
+        else:
+            user = User.objects.create_user(username=username, password=password)
+            # [실습 A07] 가입 요청이 보낸 is_staff 를 그대로 믿는다. 숨겨 보내면 직원 권한으로 가입된다.
+            if request.POST.get('is_staff'):
+                user.is_staff = True
+                user.save(update_fields=['is_staff'])
+            login(request, user)
+            return redirect('my')
+    return render(request, 'center/signup.html', {'error': error})
+
+
+def post_list(request):
+    """게시판 글 목록. 실습본 전용."""
+    return render(request, 'center/post_list.html', {'posts': Post.objects.all()})
+
+
+@login_required
+def post_create(request):
+    """글쓰기. 로그인한 사람이면 누구나."""
+    error = None
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()[:200]
+        body = request.POST.get('body', '').strip()
+        if title and body:
+            post = Post.objects.create(title=title, body=body, author=request.user)
+            return redirect('post_detail', pk=post.pk)
+        error = '제목과 내용을 입력해 주세요.'
+    return render(request, 'center/post_form.html', {'error': error})
+
+
+def post_detail(request, pk):
+    """글 + 댓글. 로그인한 사람이 댓글을 단다."""
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == 'POST' and request.user.is_authenticated:
+        body = request.POST.get('body', '').strip()
+        if body:
+            Comment.objects.create(post=post, body=body, author=request.user)
+        return redirect('post_detail', pk=pk)
+    # [실습 A03] 글·댓글 본문을 이스케이프 없이 그대로 화면에 낸다(mark_safe). 올려 둔 <script> 가
+    # [실습 A03] 그 글을 여는 모든 사람의 브라우저에서 실행된다 = 저장형 XSS.
+    post.safe_body = mark_safe(post.body)
+    comments = list(post.comments.all())
+    for c in comments:
+        c.safe_body = mark_safe(c.body)
+    return render(request, 'center/post_detail.html', {'post': post, 'comments': comments})
+
+
+@login_required
+def embed(request):
+    """외부 페이지 미리보기. 실습본 전용 — URL 을 넣으면 서버가 그 페이지 앞부분을 가져와 보여준다."""
+    url = request.GET.get('url', '').strip()
+    preview = error = None
+    if url:
+        # [실습 A01] 사용자가 준 URL 을 서버가 그대로 가져온다. 스킴·주소 제한이 없어 내부 자원
+        # [실습 A01] (http://localhost, http://169.254.169.254, file:///etc/passwd 등)도 읽는다 = SSRF.
+        try:
+            with urllib.request.urlopen(url, timeout=3) as r:  # nosec B310
+                preview = r.read(2000).decode('utf-8', 'replace')
+        except Exception as e:
+            error = str(e)
+    return render(request, 'center/embed.html', {'url': url, 'preview': preview, 'error': error})

@@ -10,7 +10,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog
+from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog, Post
 
 
 class PageTests(TestCase):
@@ -53,17 +53,6 @@ class NoticeFormatTests(TestCase):
         self.assertIn('<p><strong>중요</strong> 안내입니다<br>둘째 줄</p>', html)
         self.assertIn('<ul><li>가</li><li>나</li></ul>', html)
 
-    def test_html_in_the_body_is_shown_as_text(self):
-        html = self.render('<script>alert(1)</script> <img src=x onerror=alert(2)>')
-        self.assertNotIn('<script>alert(1)', html)
-        self.assertNotIn('<img src=x', html)
-        self.assertIn('&lt;script&gt;', html)
-
-    def test_html_inside_bold_and_list_and_heading_is_escaped(self):
-        html = self.render('**<img src=x onerror=1>**\n- <b>x</b>\n## <i>y</i>')
-        for raw in ['<img src=x', '<b>x</b>', '<i>y</i>']:
-            self.assertNotIn(raw, html)
-
     def test_links_are_not_turned_into_anchors(self):
         html = self.render('[클릭](javascript:alert(1)) https://example.com')
         self.assertNotIn('<a href="javascript', html)
@@ -91,18 +80,6 @@ class NoticeSearchTests(TestCase):
         body = self.get('')
         self.assertIn('봄 소풍 안내', body)
         self.assertIn('급식 안내', body)
-
-    def test_odd_input_is_matched_as_plain_text_not_sql(self):
-        for q in ["' OR '1'='1", '%', '_', '\\', 'a' * 5000]:
-            resp = self.client.get('/notices/', {'q': q})
-            self.assertEqual(resp.status_code, 200, q)
-            self.assertNotIn('봄 소풍 안내', resp.content.decode(), q)
-
-    def test_nul_character_does_not_match_everything(self):
-        # SQLite 의 LIKE 는 NUL 에서 패턴이 끊겨 전부 일치해 버린다. 뺀 뒤 나머지 글자로 찾는다.
-        body = self.get('\x00소풍')
-        self.assertIn('봄 소풍 안내', body)
-        self.assertNotIn('급식 안내', body)
 
     def test_query_is_escaped_in_the_page(self):
         body = self.get('<script>alert(1)</script>')
@@ -394,6 +371,65 @@ class BoardTests(TestCase):
         self.assertIn("'=HYPERLINK", body)
 
 
+class SignupTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_signup_creates_account_and_logs_in(self):
+        resp = self.client.post('/signup/', {'username': '보호자1', 'password': 'pw-strong-9271'})
+        self.assertRedirects(resp, '/my/', fetch_redirect_response=False)
+        self.assertTrue(User.objects.filter(username='보호자1').exists())
+
+    def test_blank_or_duplicate_is_rejected(self):
+        User.objects.create_user('dup', password='x')
+        self.client.post('/signup/', {'username': 'dup', 'password': 'y'})
+        self.assertEqual(User.objects.filter(username='dup').count(), 1)
+        self.client.post('/signup/', {'username': '', 'password': 'z'})
+        self.assertEqual(User.objects.filter(username='').count(), 0)
+
+
+class PostBoardTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.user = User.objects.create_user('writer', password='pw-strong-9271')
+
+    def test_create_requires_login(self):
+        self.assertEqual(self.client.get('/board/posts/new/').status_code, 302)
+
+    def test_create_list_and_comment(self):
+        self.client.login(username='writer', password='pw-strong-9271')
+        self.client.post('/board/posts/new/', {'title': '첫 글', 'body': '안녕하세요'})
+        post = Post.objects.get()
+        self.assertIn('첫 글', self.client.get('/board/posts/').content.decode())
+        self.client.post(f'/board/posts/{post.pk}/', {'body': '첫 댓글'})
+        self.assertIn('첫 댓글', self.client.get(f'/board/posts/{post.pk}/').content.decode())
+
+    def test_empty_post_shows_error_and_creates_nothing(self):
+        self.client.login(username='writer', password='pw-strong-9271')
+        resp = self.client.post('/board/posts/new/', {'title': '', 'body': ''})
+        self.assertIn('제목과 내용', resp.content.decode())
+        self.assertFalse(Post.objects.exists())
+
+    def test_posts_visible_in_admin(self):
+        User.objects.create_superuser('boss', 'a@b.c', 'pw')
+        self.client.login(username='boss', password='pw')
+        self.assertEqual(self.client.get('/admin/center/post/').status_code, 200)
+        self.assertEqual(self.client.get('/admin/center/comment/').status_code, 200)
+
+
+class EmbedTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        User.objects.create_user('u', password='pw-strong-9271')
+
+    def test_requires_login(self):
+        self.assertEqual(self.client.get('/embed/').status_code, 302)
+
+    def test_form_renders_when_logged_in(self):
+        self.client.login(username='u', password='pw-strong-9271')
+        self.assertEqual(self.client.get('/embed/').status_code, 200)
+
+
 class CsvSafetyTests(TestCase):
     def test_formula_is_neutralised(self):
         from .views import _csv_safe
@@ -403,3 +439,15 @@ class CsvSafetyTests(TestCase):
         # 평범한 값은 건드리지 않는다
         self.assertEqual(_csv_safe('병원 진료'), '병원 진료')
         self.assertEqual(_csv_safe(''), '')
+
+
+class SeedDummyTests(TestCase):
+    def test_seed_is_idempotent_and_guardians_cannot_login(self):
+        from django.core.management import call_command
+        call_command('seed_dummy')
+        n = (Child.objects.count(), Notice.objects.count(), Post.objects.count())
+        self.assertTrue(all(n))
+        call_command('seed_dummy')   # 두 번째 실행에도 늘지 않는다
+        self.assertEqual(n, (Child.objects.count(), Notice.objects.count(), Post.objects.count()))
+        # 보호자 계정은 로그인용이 아니다(IDOR 표적 데이터)
+        self.assertFalse(User.objects.get(username='김보호').has_usable_password())
