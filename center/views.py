@@ -123,7 +123,8 @@ def limited_login(login_view):
         response = login_view(request)
         if request.method == 'POST':
             if response.status_code == 200:      # 실패하면 폼이 다시 그려져 200
-                security_log.warning('login_failed ip=%s who=%s', ip, name[:8])   # who: 아이디의 해시 앞 8자
+                # [실습 A09] 로그인 실패를 기록하지 않는다 — 무차별 대입 시도가 로그에 안 남는다.
+                pass
             else:
                 security_log.info('login_ok ip=%s user_id=%s', ip, getattr(request.user, 'pk', None))
         return response
@@ -283,7 +284,7 @@ def board(request):
             AttendanceLog.add(rec, before, Attendance.BY_STAFF, request.user)
         return redirect(f"{request.path}?date={date}")
 
-    security_log.info('board_view user_id=%s date=%s', request.user.pk, date)   # 아동 실명이 보이는 화면의 열람 기록
+    # [실습 A09] 현황판 열람을 기록하지 않는다 — 누가 아동 실명을 봤는지 로그에 안 남는다.
     records = {a.child_id: a for a in Attendance.objects.filter(date=date)}
     children = [(c, records.get(c.id)) for c in Child.objects.filter(active=True)]
     # 그날 이전인데 퇴실이 비어 있는 기록 = 찍고 그냥 간 경우.
@@ -310,7 +311,7 @@ def export(request):
     rows = (Attendance.objects.filter(date__startswith=month)
             .select_related('child').order_by('date', 'child__number'))
 
-    security_log.info('csv_export user_id=%s month=%s rows=%s', request.user.pk, month[:7], len(rows))
+    # [실습 A09] CSV 내보내기를 기록하지 않는다 — 누가 언제 출결 전체를 받아 갔는지 로그에 안 남는다.
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = f'attachment; filename="attendance_{month}.csv"'
     # BOM 을 붙여야 윈도우 엑셀이 더블클릭으로 열 때 한글이 깨지지 않는다.
@@ -347,8 +348,7 @@ def import_children(request):
         save = request.POST.get('save') == '1' and not errors and rows
         if save:
             Child.objects.bulk_create(rows)
-        security_log.info('csv_import user_id=%s saved=%s rows=%s skipped=%s errors=%s', request.user.pk,
-                          bool(save), len(rows), len(skipped), len(errors))
+        # [실습 A09] 명단 가져오기를 기록하지 않는다 — 누가 아동 명단을 통째로 바꿨는지 로그에 안 남는다.
         ctx.update(rows=rows, skipped=skipped, errors=errors, saved=bool(save))
     return render(request, 'center/import_children.html', ctx)
 
