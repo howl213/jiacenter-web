@@ -131,6 +131,7 @@ class VulnSafetyTests(TestCase):
         self.assertTrue(admin.is_superuser and admin.check_password('admin1234'))
         for c in Child.objects.all():
             self.assertTrue(c.guardian_tel.startswith('010-0000-'), c.guardian_tel)
+            self.assertTrue(c.name.startswith('모의아동'), c.name)
 
 
 class WeakHashTests(TestCase):
