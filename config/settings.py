@@ -148,6 +148,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# 첨부 파일 저장 위치. URL 로 직접 내보내지 않는다(center.views.notice_file 만 내려보낸다).
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # [실습 A08] 업로드 저장 위치. main 에는 이 설정과 업로드 기능이 없다.
 MEDIA_URL = 'uploads/'
@@ -207,12 +209,21 @@ LOGGING = {
             'backupCount': 3,
             'formatter': 'verbose',
         },
+        # 보안 사건(로그인 실패·잠금, 키오스크 잠금, 명단 가져오기). 요청 내용은 남기지 않는다.
+        'security': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'security.log',
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 3,
+            'formatter': 'verbose',
+        },
     },
     'formatters': {
         'verbose': {'format': '{asctime} {levelname} {name} {message}', 'style': '{'},
     },
     'loggers': {
         'django.request': {'handlers': ['file'], 'level': 'ERROR', 'propagate': True},
+        'center.security': {'handlers': ['security'], 'level': 'INFO', 'propagate': False},
         'django.security': {'handlers': ['file'], 'level': 'WARNING', 'propagate': True},
     },
 }

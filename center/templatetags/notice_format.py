@@ -1,7 +1,6 @@
 import re
 
 from django import template
-from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 register = template.Library()
@@ -11,12 +10,7 @@ _BOLD = re.compile(r'\*\*(.+?)\*\*')
 
 @register.filter
 def notice_format(text):
-    """공지 본문의 간단한 서식: **굵게**, ## 소제목, - 목록, 빈 줄은 문단, 줄바꿈은 <br>.
-
-    먼저 전체를 escape 한 다음에 고정된 태그만 끼워 넣는다. 사용자가 쓴 HTML·속성·링크는
-    들어갈 자리가 없다 — 그래서 mark_safe 를 써도 된다. 링크와 이미지는 일부러 지원하지 않는다
-    (javascript: 주소 같은 우회가 생기므로).
-    """
+    """공지 본문의 간단한 서식: **굵게**, ## 소제목, - 목록, 빈 줄은 문단, 줄바꿈은 <br>."""
     out, items = [], []
 
     def inline(s):

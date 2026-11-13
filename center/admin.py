@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from .models import Attendance, AttendanceLog, CenterInfo, Child, NotifyLog, Notice, Program
+from .models import (ATTACH_MAX_COUNT, Attendance, AttendanceLog, CenterInfo, Child, Comment,
+                     NoticeFile, NotifyLog, Notice, Post, Program)
 
 
 @admin.register(CenterInfo)
@@ -14,8 +15,15 @@ class CenterInfoAdmin(admin.ModelAdmin):
         return False
 
 
+class NoticeFileInline(admin.TabularInline):
+    model = NoticeFile
+    extra = 1
+    max_num = ATTACH_MAX_COUNT   # 공지당 3개까지(PDF·PNG·JPG, 5MB)
+
+
 @admin.register(Notice)
 class NoticeAdmin(admin.ModelAdmin):
+    inlines = [NoticeFileInline]
     list_display = ['title', 'pinned', 'created_at']
     list_editable = ['pinned']
     fieldsets = [(None, {
@@ -69,3 +77,15 @@ class AttendanceLogAdmin(admin.ModelAdmin):
 class NotifyLogAdmin(admin.ModelAdmin):
     list_display = ['created_at', 'template', 'tel', 'sent']
     readonly_fields = ['created_at']
+
+
+# 실습본 전용(게시판). 권한 상승으로 직원이 된 계정이 admin 까지 닿았을 때 보이게 등록한다.
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ['title', 'author', 'created_at']
+    search_fields = ['title', 'body']
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ['post', 'author', 'created_at']

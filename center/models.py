@@ -1,4 +1,7 @@
+import uuid
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -33,6 +36,61 @@ class Notice(models.Model):
 
     def __str__(self):
         return self.title
+
+
+# 허용 형식: 파일 앞부분 바이트로 판정한다. 사용자가 붙인 확장자·Content-Type 은 믿지 않는다.
+ATTACH_TYPES = [(b'%PDF-', 'pdf', 'application/pdf'),
+                (b'\x89PNG\r\n\x1a\n', 'png', 'image/png'),
+                (b'\xff\xd8\xff', 'jpg', 'image/jpeg')]
+ATTACH_MAX_BYTES = 5 * 1024 * 1024
+ATTACH_MAX_COUNT = 3
+
+
+def sniff(head):
+    """앞부분 바이트로 (확장자, MIME) 를 돌려준다. 허용 형식이 아니면 None."""
+    return next(((ext, mime) for magic, ext, mime in ATTACH_TYPES if head.startswith(magic)), None)
+
+
+def validate_attachment(f):
+    if f.size > ATTACH_MAX_BYTES:
+        raise ValidationError('파일은 5MB 까지 올릴 수 있습니다.')
+    f.seek(0)
+    kind = sniff(f.read(16))
+    f.seek(0)
+    if kind is None:
+        raise ValidationError('PDF, PNG, JPG 파일만 올릴 수 있습니다.')
+
+
+def attachment_path(instance, filename):
+    # 저장 이름은 새로 만든다 — 사용자가 준 이름(경로 조작·이중 확장자)을 디스크에 쓰지 않는다.
+    f = instance.file.file
+    f.seek(0)
+    ext = sniff(f.read(16))[0]
+    f.seek(0)
+    return f'notice/{uuid.uuid4().hex}.{ext}'
+
+
+class NoticeFile(models.Model):
+    """공지 첨부. 직접 주소로 열리지 않고 notice_file 화면을 거쳐서만 내려간다."""
+    notice = models.ForeignKey(Notice, on_delete=models.CASCADE, related_name='files')
+    file = models.FileField('파일', upload_to=attachment_path, validators=[validate_attachment])
+    label = models.CharField('표시 이름', max_length=100, blank=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = '공지 첨부'
+        ordering = ['id']
+
+    def save(self, *args, **kwargs):
+        if not self.label and self._state.adding:
+            self.label = self.file.name.rsplit('/', 1)[-1][:100]   # 올린 원래 이름(저장 전 값)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.label
+
+    def mime(self):
+        with self.file.open('rb') as f:
+            return sniff(f.read(16))[1]
 
 
 class Program(models.Model):
@@ -126,6 +184,38 @@ class AttendanceLog(models.Model):
         if before != after:
             cls.objects.create(attendance=rec, label=f'{rec.date} {rec.child}', by=by,
                                via=via, before=before, after=after)
+
+
+class Post(models.Model):
+    """게시판 글. 실습본 전용 — main 에는 없는 기능이다."""
+    title = models.CharField('제목', max_length=200)
+    body = models.TextField('내용')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                               on_delete=models.SET_NULL, related_name='posts', verbose_name='작성자')
+    created_at = models.DateTimeField('작성일', auto_now_add=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = '게시글'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+class Comment(models.Model):
+    """게시판 댓글. 실습본 전용."""
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments', verbose_name='글')
+    body = models.TextField('내용')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                               on_delete=models.SET_NULL, related_name='comments', verbose_name='작성자')
+    created_at = models.DateTimeField('작성일', auto_now_add=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = '댓글'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return self.body[:20]
 
 
 class NotifyLog(models.Model):

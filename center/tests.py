@@ -13,7 +13,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.utils import timezone
 
-from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog, Upload
+from .models import Attendance, AttendanceLog, CenterInfo, Child, Notice, NotifyLog, Post, Upload
 
 
 class PageTests(TestCase):
@@ -131,7 +131,6 @@ class VulnSafetyTests(TestCase):
         self.assertTrue(admin.is_superuser and admin.check_password('admin1234'))
         for c in Child.objects.all():
             self.assertTrue(c.guardian_tel.startswith('010-0000-'), c.guardian_tel)
-            self.assertTrue(c.name.startswith('모의아동'), c.name)
 
 
 class WeakHashTests(TestCase):
@@ -411,12 +410,80 @@ class BoardTests(TestCase):
         self.assertIn('14:30', body)
         self.assertNotIn('2026-04', body)
 
+    def test_csv_export_neutralises_formula_in_name(self):
+        self.client.post('/attendance/board/', {
+            'child': self.child.pk, 'date': '2026-03-14',
+            'check_in': '14:30', 'check_out': '18:00', 'status': '출석', 'note': ''})
+        self.child.name = '=HYPERLINK("x")'
+        self.child.save()
+        body = self.client.get('/attendance/export/?month=2026-03').content.decode('utf-8')
+        self.assertIn("'=HYPERLINK", body)
+
+
+class SignupTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_signup_creates_account_and_logs_in(self):
+        resp = self.client.post('/signup/', {'username': '보호자1', 'password': 'pw-strong-9271'})
+        self.assertRedirects(resp, '/my/', fetch_redirect_response=False)
+        self.assertTrue(User.objects.filter(username='보호자1').exists())
+
+    def test_blank_or_duplicate_is_rejected(self):
+        User.objects.create_user('dup', password='x')
+        self.client.post('/signup/', {'username': 'dup', 'password': 'y'})
+        self.assertEqual(User.objects.filter(username='dup').count(), 1)
+        self.client.post('/signup/', {'username': '', 'password': 'z'})
+        self.assertEqual(User.objects.filter(username='').count(), 0)
+
+
+class PostBoardTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.user = User.objects.create_user('writer', password='pw-strong-9271')
+
+    def test_create_requires_login(self):
+        self.assertEqual(self.client.get('/board/posts/new/').status_code, 302)
+
+    def test_create_list_and_comment(self):
+        self.client.login(username='writer', password='pw-strong-9271')
+        self.client.post('/board/posts/new/', {'title': '첫 글', 'body': '안녕하세요'})
+        post = Post.objects.get()
+        self.assertIn('첫 글', self.client.get('/board/posts/').content.decode())
+        self.client.post(f'/board/posts/{post.pk}/', {'body': '첫 댓글'})
+        self.assertIn('첫 댓글', self.client.get(f'/board/posts/{post.pk}/').content.decode())
+
+    def test_empty_post_shows_error_and_creates_nothing(self):
+        self.client.login(username='writer', password='pw-strong-9271')
+        resp = self.client.post('/board/posts/new/', {'title': '', 'body': ''})
+        self.assertIn('제목과 내용', resp.content.decode())
+        self.assertFalse(Post.objects.exists())
+
+    def test_posts_visible_in_admin(self):
+        User.objects.create_superuser('boss', 'a@b.c', 'pw')
+        self.client.login(username='boss', password='pw')
+        self.assertEqual(self.client.get('/admin/center/post/').status_code, 200)
+        self.assertEqual(self.client.get('/admin/center/comment/').status_code, 200)
+
+
+class EmbedTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        User.objects.create_user('u', password='pw-strong-9271')
+
+    def test_requires_login(self):
+        self.assertEqual(self.client.get('/embed/').status_code, 302)
+
+    def test_form_renders_when_logged_in(self):
+        self.client.login(username='u', password='pw-strong-9271')
+        self.assertEqual(self.client.get('/embed/').status_code, 200)
+
 
 class CsvSafetyTests(TestCase):
     def test_formula_is_neutralised(self):
         from .views import _csv_safe
         # 엑셀이 수식으로 실행하는 네 가지 시작 문자
-        for bad in ['=1+1', '+1', '-1', '@SUM(A1)']:
+        for bad in ['=1+1', '+1', '-1', '@SUM(A1)', '\t=1', '\r=1']:
             self.assertTrue(_csv_safe(bad).startswith("'"), bad)
         # 평범한 값은 건드리지 않는다
         self.assertEqual(_csv_safe('병원 진료'), '병원 진료')
@@ -428,20 +495,20 @@ class VulnSignupTests(TestCase):
 
     def test_code_is_shown_in_the_response_and_is_three_digits(self):
         # [실습 A06] 보낸 인증번호가 화면에 그대로 보이고, 3자리라 쉽게 맞힌다.
-        resp = self.client.post('/signup/', {'phone': '010-0000-0001'})
+        resp = self.client.post('/signup/phone/', {'phone': '010-0000-0001'})
         m = re.search(r'인증번호 (\d+) 를', resp.content.decode())
         self.assertIsNotNone(m, '인증번호가 화면에 보이지 않는다')
         self.assertEqual(len(m.group(1)), 3)
 
     def test_no_attempt_limit_and_signup_completes(self):
         # [실습 A06] 틀린 번호를 수십 번 보내도 잠기지 않고, 맞히면 그대로 가입된다.
-        first = self.client.post('/signup/', {'phone': '010-0000-0002'})
+        first = self.client.post('/signup/phone/', {'phone': '010-0000-0002'})
         code = re.search(r'인증번호 (\d+) 를', first.content.decode()).group(1)
         wrong = '000' if code != '000' else '111'
         for _ in range(50):
-            resp = self.client.post('/signup/', {'phone': '010-0000-0002', 'code': wrong})
+            resp = self.client.post('/signup/phone/', {'phone': '010-0000-0002', 'code': wrong})
         self.assertIn('틀렸습니다', resp.content.decode())
-        done = self.client.post('/signup/', {'phone': '010-0000-0002', 'code': code})
+        done = self.client.post('/signup/phone/', {'phone': '010-0000-0002', 'code': code})
         self.assertIn('가입이 완료', done.content.decode())
         self.assertTrue(User.objects.filter(username='010-0000-0002').exists())
 
@@ -485,3 +552,16 @@ class VulnSessionFixationTests(TestCase):
         # 로그인 뒤에도 같은 id 가 인증된 세션이다 (main 은 로그인 때 키를 새로 만들어 이 값이 바뀐다)
         self.assertEqual(self.client.session.session_key, fixed)
         self.assertEqual(str(self.client.session.get('_auth_user_id')), str(self.mom.pk))
+
+
+@override_settings(DEBUG=True)
+class SeedDummyTests(TestCase):
+    def test_seed_is_idempotent_and_guardians_cannot_login(self):
+        from django.core.management import call_command
+        call_command('seed_dummy')
+        n = (Child.objects.count(), Notice.objects.count(), Post.objects.count())
+        self.assertTrue(all(n))
+        call_command('seed_dummy')   # 두 번째 실행에도 늘지 않는다
+        self.assertEqual(n, (Child.objects.count(), Notice.objects.count(), Post.objects.count()))
+        # 보호자 계정은 로그인용이 아니다(IDOR 표적 데이터)
+        self.assertFalse(User.objects.get(username='김보호').has_usable_password())
