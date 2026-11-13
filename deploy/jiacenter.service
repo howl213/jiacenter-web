@@ -1,0 +1,17 @@
+# systemd 서비스 견본. 서버에서 /etc/systemd/system/jiacenter.service 로 복사해 경로·계정을 고친다.
+# 아직 실제 서버에서 돌려 본 적 없는 견본이다(2026-11-13). 처음 올릴 때 `systemctl status` 와 로그로 확인한다.
+[Unit]
+Description=지역아동센터 홈페이지 (gunicorn)
+After=network.target
+
+[Service]
+User=jiacenter
+WorkingDirectory=/srv/jiacenter
+# 비밀키 등은 이 파일 밖의 .env 에 둔다(권한 600, 커밋 금지). 형식은 저장소의 .env.example
+EnvironmentFile=/srv/jiacenter/.env
+# 127.0.0.1 에만 연다. 바깥에서는 Caddy 를 거쳐서만 들어온다.
+ExecStart=/srv/jiacenter/.venv/bin/gunicorn config.wsgi -b 127.0.0.1:8000 --workers 2
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

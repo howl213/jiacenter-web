@@ -162,6 +162,20 @@ center/              앱 하나에 전부
 운영 모드에서는 SSL 리다이렉트, Secure 쿠키, HSTS 가 자동으로 켜진다. 개발에는 https 가 없어
 켜면 접속이 안 되므로 `DEBUG` 로 분기했다.
 
+### 운영 서버 구성 (견본, 모의 값 단계)
+
+`runserver` 는 개발용이다. 운영은 `gunicorn`(앱) + Caddy(HTTPS) 로 하며, 견본은 `deploy/` 에 있다.
+**실제 서버에서 돌려 본 적은 없다.** 아래는 이 PC 에서 `DJANGO_DEBUG=0` 으로 gunicorn 을 띄워 확인한 범위다.
+
+```bash
+.venv/bin/python manage.py collectstatic --noinput     # 정적 파일을 staticfiles/ 에 모은다 (WhiteNoise 가 내보냄)
+DJANGO_DEBUG=0 DJANGO_SECRET_KEY=... DJANGO_ALLOWED_HOSTS=example.kr DJANGO_BEHIND_PROXY=1 \
+  .venv/bin/gunicorn config.wsgi -b 127.0.0.1:8000
+```
+
+- 관리자 주소는 `DJANGO_ADMIN_PATH` 로 바꾼다(기본 `admin/`).
+- 프록시 뒤에서만 `DJANGO_BEHIND_PROXY=1` 을 쓴다.
+
 배포 전 점검:
 
 ```bash
