@@ -467,12 +467,14 @@ def signup_phone(request):
         phone = request.POST.get('phone', '').strip()
         code = request.POST.get('code', '').strip()
         if not code:
-            sent = str(random.randint(100, 999))        # [실습 A06] 3자리
+            # [실습 A06] 3자리
+            sent = str(random.randint(100, 999))
             request.session['signup_code'] = sent
             request.session['signup_phone'] = phone
             # [실습 A06] 보낸 인증번호를 응답에 그대로 노출한다
             message = f'{phone} 로 인증번호 {sent} 를 보냈습니다. 번호를 입력하세요.'
-        elif code == request.session.get('signup_code'):  # [실습 A06] 시도 횟수 제한 없음
+        # [실습 A06] 시도 횟수 제한 없음
+        elif code == request.session.get('signup_code'):
             User.objects.get_or_create(username=phone or 'unknown')
             request.session.pop('signup_code', None)
             request.session.pop('signup_phone', None)

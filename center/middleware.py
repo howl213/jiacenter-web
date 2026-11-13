@@ -1,4 +1,5 @@
-"""[실습 A07] 세션 고정(session fixation). main 에는 이 파일이 없다."""
+# [실습 A07]
+"""세션 고정(session fixation). main 에는 이 파일이 없다."""
 from importlib import import_module
 
 from django.conf import settings
@@ -23,6 +24,7 @@ class SessionFixationMiddleware:
             # [실습 A07] 그 id 로 세션을 실제로 만들어 둔다 — 없으면 Django 가 새 키로 갈아탄다.
             if not store.exists(sid):
                 store.save(must_create=True)
-            store.cycle_key = lambda: None   # [실습 A07] 로그인해도 세션 키를 새로 만들지 않는다
+            # [실습 A07] 로그인해도 세션 키를 새로 만들지 않는다
+            store.cycle_key = lambda: None
             request.session = store
         return self.get_response(request)

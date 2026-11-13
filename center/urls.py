@@ -16,7 +16,8 @@ urlpatterns = [
     path('my/', views.my, name='my'),
     path('my/<int:child_id>/', views.my_child, name='my_child'),
     path('signup/', views.signup, name='signup'),
-    path('signup/phone/', views.signup_phone, name='signup_phone'),  # [실습 A06]
+    # [실습 A06]
+    path('signup/phone/', views.signup_phone, name='signup_phone'),
     path('board/posts/', views.post_list, name='post_list'),
     path('board/posts/new/', views.post_create, name='post_create'),
     path('board/posts/<int:pk>/', views.post_detail, name='post_detail'),
