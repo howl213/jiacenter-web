@@ -43,7 +43,6 @@ Windows 에서 만든 `vuln/practice` 의 커밋 12개를 이 계보로 합쳤�
 | A03 | `vuln(A03) 게시판·댓글 — 본문을 이스케이프 없이 출력` | `center/views.py` `post_detail()` | 글·댓글 본문을 `mark_safe` 로 그대로 출력한다(저장형 XSS) |
 | A01 | `vuln(A01) 내 아이 조회 — URL 의 child id 로 소유자 검사 없이 조회` | `center/views.py` `my()` | `/my/?child=<남의 id>` 로 남의 아이 출결이 보인다(IDOR). `/my/<id>/` 는 위 A01 |
 | A01 | `vuln(A01) 외부 임베드 — 사용자 URL 을 서버가 검증 없이 가져옴` | `center/views.py` `embed()` | `/embed/?url=` 로 서버가 임의 URL 을 가져온다(SSRF) |
+| A07 | 위 `vuln(A07)` 회원가입 커밋에 딸려 있어 따로 커밋이 없다(2026-11-13 실습 항목으로 올림) | `center/views.py` `signup()` (`/signup/`) | `signup()` 이 폼을 거치지 않아 `AUTH_PASSWORD_VALIDATORS` 가 돌지 않는다. 한 글자 비밀번호로도 가입된다 |
 
 URL 충돌로 옮긴 것: 위 A06 전화 인증 가입은 `/signup/phone/` 으로 옮겼다(`signup_phone()`). `/signup/` 은 Windows 계보의 아이디·비밀번호 가입이다.
-
-딸려온 약점: **회원가입 비밀번호 규칙 없음** — `signup()` 이 폼을 거치지 않아 `AUTH_PASSWORD_VALIDATORS` 가 돌지 않는다. 의도한 항목은 아니다.
