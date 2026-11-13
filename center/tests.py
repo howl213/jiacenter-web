@@ -466,6 +466,17 @@ class PostBoardTests(TestCase):
         self.assertEqual(self.client.get('/admin/center/post/').status_code, 200)
         self.assertEqual(self.client.get('/admin/center/comment/').status_code, 200)
 
+    def test_anyone_logged_in_can_edit_or_delete_another_users_post(self):
+        # [실습 A01] 글쓴이가 아니어도 로그인만 했으면 남의 글을 수정·삭제할 수 있다.
+        post = Post.objects.create(title='원글', body='원문', author=self.user)
+        other = User.objects.create_user('other', password='pw-strong-9271')
+        self.client.login(username='other', password='pw-strong-9271')
+        self.client.post(f'/board/posts/{post.pk}/edit/', {'title': '남이 고침', 'body': '내용도 고침'})
+        post.refresh_from_db()
+        self.assertEqual(post.title, '남이 고침')
+        self.client.post(f'/board/posts/{post.pk}/delete/')
+        self.assertFalse(Post.objects.filter(pk=post.pk).exists())
+
 
 class EmbedTests(TestCase):
     def setUp(self):

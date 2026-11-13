@@ -423,6 +423,34 @@ def post_create(request):
     return render(request, 'center/post_form.html', {'error': error})
 
 
+@login_required
+def post_edit(request, pk):
+    """글 수정. 로그인한 사람이면 누구나 — 작성자인지 확인하지 않는다."""
+    post = get_object_or_404(Post, pk=pk)
+    error = None
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()[:200]
+        body = request.POST.get('body', '').strip()
+        if title and body:
+            # [실습 A01] 작성자 확인 없이 아무 글이나 고칠 수 있다 — 글 id 만 맞으면 끝이다.
+            post.title, post.body = title, body
+            post.save(update_fields=['title', 'body'])
+            return redirect('post_detail', pk=pk)
+        error = '제목과 내용을 입력해 주세요.'
+    return render(request, 'center/post_form.html', {'error': error, 'post': post})
+
+
+@login_required
+def post_delete(request, pk):
+    """글 삭제. 로그인한 사람이면 누구나 — 작성자인지 확인하지 않는다."""
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == 'POST':
+        # [실습 A01] 위 수정과 같은 구멍 — 글쓴이가 아니어도 지울 수 있다.
+        post.delete()
+        return redirect('post_list')
+    return render(request, 'center/post_delete_confirm.html', {'post': post})
+
+
 def post_detail(request, pk):
     """글 + 댓글. 로그인한 사람이 댓글을 단다."""
     post = get_object_or_404(Post, pk=pk)

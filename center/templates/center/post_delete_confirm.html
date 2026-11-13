@@ -1,0 +1,10 @@
+{% extends 'center/base.html' %}
+{% block title %}글 삭제{% endblock %}
+{% block content %}
+<h1>글 삭제</h1>
+<p>"{{ post.title }}" 글을 지울까요?</p>
+<form method="post">{% csrf_token %}
+  <button type="submit">지우기</button>
+  <a href="{% url 'post_detail' post.pk %}">취소</a>
+</form>
+{% endblock %}

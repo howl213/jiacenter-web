@@ -1,11 +1,11 @@
 {% extends 'center/base.html' %}
-{% block title %}글쓰기{% endblock %}
+{% block title %}{% if post %}글 수정{% else %}글쓰기{% endif %}{% endblock %}
 {% block content %}
-<h1>글쓰기</h1>
+<h1>{% if post %}글 수정{% else %}글쓰기{% endif %}</h1>
 {% if error %}<p class="error">{{ error }}</p>{% endif %}
 <form method="post">{% csrf_token %}
-  <p><label>제목 <input type="text" name="title" autofocus></label></p>
-  <p><label>내용<br><textarea name="body" rows="8" cols="40"></textarea></label></p>
-  <button type="submit">올리기</button>
+  <p><label>제목 <input type="text" name="title" value="{{ post.title|default:'' }}" autofocus></label></p>
+  <p><label>내용<br><textarea name="body" rows="8" cols="40">{{ post.body|default:'' }}</textarea></label></p>
+  <button type="submit">{% if post %}고치기{% else %}올리기{% endif %}</button>
 </form>
 {% endblock %}
