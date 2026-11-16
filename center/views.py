@@ -31,7 +31,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from . import importer
-from .models import Attendance, AttendanceLog, Child, Notice, NoticeFile, Program
+from .models import Album, Attendance, AttendanceLog, Child, Notice, NoticeFile, Photo, Program, sniff
 from .notify import send_alimtalk
 
 # 보안 사건 기록(config/settings.py 의 LOGGING → logs/security.log). 비밀번호·입력한 번호·이름은 남기지 않는다.
@@ -65,14 +65,31 @@ def notice_file(request, pk):
 
     PDF 는 항상 내려받기로 준다(브라우저 안에서 스크립트가 도는 것을 피한다). 그림만 화면에 바로 보인다.
     """
-    nf = get_object_or_404(NoticeFile, pk=pk)
-    mime = nf.mime()
-    resp = FileResponse(nf.file.open('rb'), content_type=mime,
-                        as_attachment=mime == 'application/pdf',
-                        filename=nf.file.name.rsplit('/', 1)[-1])
+    return _send(get_object_or_404(NoticeFile, pk=pk).file)
+
+
+def _send(field):
+    fh = field.open('rb')
+    mime = sniff(fh.read(16))[1]
+    fh.seek(0)
+    resp = FileResponse(fh, content_type=mime, as_attachment=mime == 'application/pdf',
+                        filename=field.name.rsplit('/', 1)[-1])
     resp['X-Content-Type-Options'] = 'nosniff'
     resp['Content-Security-Policy'] = "default-src 'none'; sandbox"
     return resp
+
+
+def album_list(request):
+    page = Paginator(Album.objects.prefetch_related('photos'), 12).get_page(request.GET.get('page'))
+    return render(request, 'center/album_list.html', {'page': page})
+
+
+def album_detail(request, pk):
+    return render(request, 'center/album_detail.html', {'album': get_object_or_404(Album, pk=pk)})
+
+
+def album_photo(request, pk):
+    return _send(get_object_or_404(Photo, pk=pk).file)
 
 
 def program_list(request):

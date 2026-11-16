@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import (ATTACH_MAX_COUNT, Attendance, AttendanceLog, CenterInfo, Child, NoticeFile,
-                     NotifyLog, Notice, Program)
+from .models import (ALBUM_MAX_COUNT, ATTACH_MAX_COUNT, Album, Attendance, AttendanceLog, CenterInfo,
+                     Child, NoticeFile, NotifyLog, Notice, Photo, Program)
 
 
 @admin.register(CenterInfo)
@@ -30,6 +30,22 @@ class NoticeAdmin(admin.ModelAdmin):
         'fields': ['title', 'body', 'pinned'],
         'description': '본문 서식: **굵게** · 줄 맨 앞에 "## " 은 소제목 · "- " 는 목록 · 빈 줄은 문단 구분. '
                        'HTML 과 링크는 쓸 수 없고 글자 그대로 보입니다.'})]
+
+
+class PhotoInline(admin.TabularInline):
+    model = Photo
+    extra = 3
+    max_num = ALBUM_MAX_COUNT
+
+
+@admin.register(Album)
+class AlbumAdmin(admin.ModelAdmin):
+    inlines = [PhotoInline]
+    list_display = ['title', 'date']
+    fieldsets = [(None, {
+        'fields': ['title', 'date'],
+        'description': '사진은 PNG·JPG, 한 장 5MB, 앨범당 20장까지. 누구나 볼 수 있습니다. '
+                       '사이트는 사진의 위치 정보를 지우지 않으니, 올리기 전에 위치 정보를 지워 주세요.'})]
 
 
 @admin.register(Program)
