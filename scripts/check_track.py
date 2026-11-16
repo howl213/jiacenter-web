@@ -60,7 +60,7 @@ def check_tree():
 
 def check_pr(base, head):
     if base == 'main' and head.startswith('vuln'):
-        return ['vuln 갈래에서 main 으로 가는 PR 입니다. 거꾸로 main 을 vuln 에 합치세요 (취약 코드가 main 에 들어가면 안 됩니다).']
+        return ['vuln 갈래에서 main 으로 가는 PR 입니다. main 과 vuln 은 서로 합치지 않습니다 (취약 코드가 main 에 들어가면 안 됩니다).']
     return []
 
 
