@@ -1,19 +1,17 @@
 * { box-sizing: border-box; }
-body { margin: 0; font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-       color: #222; line-height: 1.6; background: #fafaf8; }
-header { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: center;
-         padding: 1rem 1.5rem; background: #2f6f4f; color: #fff; }
-.brand { font-size: 1.2rem; font-weight: 700; color: #fff; text-decoration: none; }
-nav { display: flex; gap: 1rem; }
-nav a { color: #e8f3ec; text-decoration: none; }
-nav a:hover, nav a:focus { text-decoration: underline; }
-main { max-width: 860px; margin: 0 auto; padding: 1.5rem; }
-h1 { font-size: 1.6rem; margin-top: 0; }
-h2 { font-size: 1.2rem; margin-top: 2rem; }
+body { margin: 0; font-family: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+       color: #121c2a; line-height: 1.6; background: #f8f9ff; }
+.font-title { font-family: Jua, "Pretendard Variable", sans-serif; }
+/* 헤더·푸터·홈은 Tailwind 클래스로 꾸민다. 아래 .page 규칙은 아직 안 바꾼 안쪽 화면(공지·출결 등)용이다.
+   :where 로 감싸 우선순위를 태그 하나만큼으로 낮춘다 — .tile 같은 클래스 규칙이 계속 이긴다. */
+.page { max-width: 860px; margin: 0 auto; padding: 1.5rem; }
+:where(.page) h1 { font-family: Jua, sans-serif; font-size: 1.8rem; margin-top: 0; }
+:where(.page) h2 { font-size: 1.2rem; margin-top: 2rem; font-weight: 700; }
+:where(.page) a { text-decoration: underline; }
 .lead { font-size: 1.05rem; color: #444; }
 .meta, time { color: #777; font-size: .9rem; }
 .empty { color: #888; }
-.more { color: #2f6f4f; }
+.more { color: #047857; }
 
 .info { display: grid; gap: .5rem; background: #fff; border: 1px solid #e3e3dd;
         border-radius: 8px; padding: 1rem; }
@@ -25,7 +23,7 @@ h2 { font-size: 1.2rem; margin-top: 2rem; }
            padding: .6rem 0; border-bottom: 1px solid #e8e8e2; }
 .list a { color: #222; text-decoration: none; flex: 1; }
 .list a:hover { text-decoration: underline; }
-.pin { background: #2f6f4f; color: #fff; font-size: .75rem; padding: .1rem .4rem; border-radius: 4px; }
+.pin { background: #047857; color: #fff; font-size: .75rem; padding: .1rem .4rem; border-radius: 4px; }
 .pager { display: flex; gap: 1rem; align-items: center; margin-top: 1rem; }
 
 .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
@@ -34,39 +32,31 @@ h2 { font-size: 1.2rem; margin-top: 2rem; }
 
 .numpad { display: flex; gap: .5rem; margin: 1rem 0; }
 .numpad input { font-size: 2rem; padding: .5rem .75rem; width: 8rem; text-align: center;
-                border: 2px solid #2f6f4f; border-radius: 8px; }
-button { font-size: 1rem; padding: .5rem 1rem; border: 0; border-radius: 6px;
-         background: #2f6f4f; color: #fff; cursor: pointer; }
+                border: 2px solid #047857; border-radius: 8px; }
+:where(.page) button { font-size: 1rem; padding: .5rem 1rem; border: 0; border-radius: 6px;
+         background: #047857; color: #fff; cursor: pointer; }
 .toast { font-size: 1.4rem; font-weight: 700; background: #fff6d8;
          border: 1px solid #e8d79a; border-radius: 8px; padding: .75rem 1rem; }
 
 .tiles { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
 .tile { display: grid; gap: .1rem; padding: .6rem; border-radius: 8px; text-align: center;
         border: 2px solid transparent; font: inherit; color: inherit; cursor: pointer; }
-.tile:hover, .tile:focus-visible { outline: 3px solid #2f6f4f; outline-offset: 2px; }
+.tile:hover, .tile:focus-visible { outline: 3px solid #047857; outline-offset: 2px; }
 .tile .num { font-size: 1.5rem; font-weight: 700; }
 .tile .when { font-size: .8rem; }
 .tile.none { background: #eee; color: #666; }
-.tile.in { background: #dff0e3; border-color: #2f6f4f; }
+.tile.in { background: #dff0e3; border-color: #047857; }
 .tile.out { background: #dde8f5; border-color: #35628f; }
 
 .board { width: 100%; border-collapse: collapse; background: #fff; }
 .board th, .board td { padding: .5rem; border-bottom: 1px solid #e8e8e2; text-align: left; }
 .warn { background: #fdecec; border: 1px solid #e9b4b4; border-radius: 8px; padding: 1rem; }
 
-footer { padding: 1.5rem; text-align: center; color: #666; font-size: .9rem;
-         border-top: 1px solid #e3e3dd; }
-
-nav a.staff { margin-left: auto; font-weight: 700; }
-nav .who { color: #cfe3d6; font-size: .9rem; }
-nav form { display: inline; }
-.linkbtn { background: none; border: 0; color: #e8f3ec; font: inherit;
-           text-decoration: underline; padding: 0; cursor: pointer; }
 .datenav { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin-bottom: 1rem; }
-.datenav a { color: #2f6f4f; text-decoration: none; }
+.datenav a { color: #047857; text-decoration: none; }
 .datenav input { font-size: 1rem; padding: .3rem; }
 .rowform { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
 .rowform input[type=time] { width: 7rem; }
 .rowform input[type=text] { flex: 1; min-width: 6rem; }
 .rowform input, .rowform select { padding: .35rem; border: 1px solid #ccc; border-radius: 4px; }
-button.ghost { background: #fff; color: #2f6f4f; border: 1px solid #2f6f4f; }
+button.ghost { background: #fff; color: #047857; border: 1px solid #047857; }

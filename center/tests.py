@@ -21,6 +21,12 @@ class PageTests(TestCase):
     def test_board_requires_login(self):
         self.assertEqual(self.client.get('/attendance/board/').status_code, 302)
 
+    def test_home_quick_menu_and_logins_are_reachable(self):
+        # 헤더에서 뺀 출결·직원 로그인이 홈 어딘가에는 남아 있어야 한다.
+        body = self.client.get('/').content.decode()
+        for href in ['/about/', '/attendance/', '/my/', '/notices/?q=', 'href="/login/"','login/?next=/attendance/board/']:
+            self.assertIn(href, body, href)
+
 
 class HasherSafetyTests(TestCase):
     def test_fast_test_hasher_does_not_leak_into_normal_runs(self):

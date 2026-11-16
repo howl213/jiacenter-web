@@ -40,7 +40,8 @@ security_log = logging.getLogger('center.security')
 
 def home(request):
     # 홈에는 최근 공지 3건만. 정렬(고정 먼저, 최신순)은 Notice.Meta.ordering 이 이미 해준다.
-    return render(request, 'center/home.html', {'notices': Notice.objects.all()[:3]})
+    return render(request, 'center/home.html', {'notices': Notice.objects.all()[:3],
+                                                'programs': Program.objects.all()[:3]})
 
 
 def notice_list(request):
