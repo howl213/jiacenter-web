@@ -61,13 +61,29 @@ def validate_attachment(f):
         raise ValidationError('PDF, PNG, JPG 파일만 올릴 수 있습니다.')
 
 
-def attachment_path(instance, filename):
+def _stored_name(folder, instance):
     # 저장 이름은 새로 만든다 — 사용자가 준 이름(경로 조작·이중 확장자)을 디스크에 쓰지 않는다.
     f = instance.file.file
     f.seek(0)
     ext = sniff(f.read(16))[0]
     f.seek(0)
-    return f'notice/{uuid.uuid4().hex}.{ext}'
+    return f'{folder}/{uuid.uuid4().hex}.{ext}'
+
+
+def attachment_path(instance, filename):
+    return _stored_name('notice', instance)
+
+
+def photo_path(instance, filename):
+    return _stored_name('album', instance)
+
+
+def validate_photo(f):
+    validate_attachment(f)
+    kind = sniff(f.read(16))
+    f.seek(0)
+    if kind[0] == 'pdf':
+        raise ValidationError('PNG, JPG 사진만 올릴 수 있습니다.')
 
 
 class NoticeFile(models.Model):
@@ -88,9 +104,38 @@ class NoticeFile(models.Model):
     def __str__(self):
         return self.label
 
-    def mime(self):
-        with self.file.open('rb') as f:
-            return sniff(f.read(16))[1]
+
+ALBUM_MAX_COUNT = 20
+
+
+class Album(models.Model):
+    """활동앨범 한 묶음. 누구나 본다."""
+    title = models.CharField('제목', max_length=100)
+    date = models.DateField('활동일', default=timezone.localdate)
+
+    class Meta:
+        verbose_name = verbose_name_plural = '활동앨범'
+        ordering = ['-date', '-id']
+
+    def __str__(self):
+        return self.title
+
+
+class Photo(models.Model):
+    """앨범 사진. 공지 첨부처럼 album_photo 화면을 거쳐서만 내려간다.
+
+    올라온 파일을 그대로 내보낸다 — 위치 정보(EXIF)는 올리는 사람이 미리 지운다(사용자 결정, 2026-11-16).
+    """
+    album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='photos')
+    file = models.FileField('사진', upload_to=photo_path, validators=[validate_photo])
+    caption = models.CharField('설명', max_length=100, blank=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = '앨범 사진'
+        ordering = ['id']
+
+    def __str__(self):
+        return self.caption or f'사진 {self.pk}'
 
 
 class Program(models.Model):

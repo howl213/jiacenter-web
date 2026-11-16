@@ -12,6 +12,7 @@
   <nav>
     <a href="{% url 'notices' %}">공지사항</a>
     <a href="{% url 'program_list' %}">프로그램</a>
+    <a href="{% url 'albums' %}">활동앨범</a>
     <a href="{% url 'about' %}">센터 소개</a>
     <a href="{% url 'kiosk' %}">출결</a>
     {% if user.is_staff %}
