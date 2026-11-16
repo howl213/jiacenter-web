@@ -18,6 +18,12 @@ class PageTests(TestCase):
         for url in ['/', '/notices/', '/programs/', '/about/', '/attendance/']:
             self.assertEqual(self.client.get(url).status_code, 200, url)
 
+    def test_pages_load_nothing_from_other_sites(self):
+        # 모양·글꼴은 우리 static 에서만 받는다. 바깥 스크립트가 다시 들어오면 여기서 걸린다.
+        for url in ['/', '/notices/', '/programs/', '/about/', '/attendance/', '/albums/', '/login/']:
+            body = self.client.get(url).content.decode()
+            self.assertNotRegex(body, r'(src|href)="(https?:)?//', url)
+
     def test_board_requires_login(self):
         self.assertEqual(self.client.get('/attendance/board/').status_code, 302)
 
