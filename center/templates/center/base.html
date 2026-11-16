@@ -26,6 +26,8 @@
     --color-secondary: #006c49;
     --color-secondary-container: #6cf8bb;
     --color-on-secondary-container: #00714d;
+    --color-secondary-fixed: #6ffbbe;
+    --color-on-secondary-fixed: #002113;
     --color-tertiary: #006398;
     --color-tertiary-fixed: #cce5ff;
     --color-on-tertiary-fixed-variant: #004b73;
@@ -56,7 +58,8 @@
       {% elif user.is_authenticated %}
         <a class="px-4 py-2 bg-primary-container rounded-full shadow-sm text-on-primary-container transition-all hover:bg-primary-fixed-dim hover:scale-[1.02]" href="{% url 'my' %}">내 아이</a>
       {% else %}
-        <a class="px-4 py-2 bg-primary-container rounded-full shadow-sm text-on-primary-container transition-all hover:bg-primary-fixed-dim hover:scale-[1.02]" href="{% url 'login' %}">보호자 로그인</a>
+        <a class="hidden items-center gap-1.5 px-4 py-2 bg-primary-container rounded-full shadow-sm text-on-primary-container transition-all hover:bg-primary-fixed-dim hover:scale-[1.02] sm:inline-flex" href="tel:{{ center.tel }}"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>입소 및 돌봄 상담</a>
+        <a class="px-4 py-2 bg-primary-fixed rounded-full text-on-primary-fixed transition-colors hover:bg-primary-fixed-dim" href="{% url 'login' %}">보호자 로그인</a>
         <a class="hidden px-4 py-2 bg-surface-container-low rounded-full text-on-surface transition-colors hover:bg-surface-container-high md:inline-flex" href="{% url 'admin:login' %}?next={% url 'board' %}">선생님 로그인</a>
       {% endif %}
       {% if user.is_authenticated %}
@@ -67,11 +70,11 @@
       {% endif %}
     </div>
 
-    <nav class="flex gap-1 order-3 w-full text-on-surface-variant text-sm font-semibold lg:order-2 lg:w-auto" aria-label="주 메뉴">
-      <a class="px-4 py-1.5 rounded-full transition-colors hover:bg-primary-fixed hover:text-on-surface" href="{% url 'about' %}">센터소개</a>
-      <a class="px-4 py-1.5 rounded-full transition-colors hover:bg-primary-fixed hover:text-on-surface" href="{% url 'program_list' %}">프로그램 안내</a>
-      <a class="px-4 py-1.5 rounded-full transition-colors hover:bg-primary-fixed hover:text-on-surface" href="{% url 'notices' %}">공지사항</a>
-      <a class="px-4 py-1.5 rounded-full transition-colors hover:bg-primary-fixed hover:text-on-surface" href="{% url 'albums' %}">활동앨범</a>
+    <nav class="flex gap-1 order-3 w-full overflow-x-auto text-on-surface-variant text-sm font-semibold lg:order-2 lg:w-auto" aria-label="주 메뉴">
+      <a class="px-2.5 py-1.5 rounded-full whitespace-nowrap transition-colors sm:px-4 hover:bg-primary-fixed hover:text-on-surface" href="{% url 'about' %}">센터소개</a>
+      <a class="px-2.5 py-1.5 rounded-full whitespace-nowrap transition-colors sm:px-4 hover:bg-primary-fixed hover:text-on-surface" href="{% url 'program_list' %}">프로그램 안내</a>
+      <a class="px-2.5 py-1.5 rounded-full whitespace-nowrap transition-colors sm:px-4 hover:bg-primary-fixed hover:text-on-surface" href="{% url 'notices' %}">공지사항</a>
+      <a class="px-2.5 py-1.5 rounded-full whitespace-nowrap transition-colors sm:px-4 hover:bg-primary-fixed hover:text-on-surface" href="{% url 'albums' %}">활동앨범</a>
     </nav>
   </div>
 </header>
@@ -83,6 +86,11 @@
     <div>
       <p class="text-on-surface text-xl font-title">{{ center.name }}</p>
       <p class="mt-2 leading-relaxed">지역 아동의 방과후 돌봄과 학습, 급식, 정서 지원을 제공합니다.</p>
+      {# shortcut: 배지 두 개는 시안의 견본 문구다. 실제 센터 정보로 바꿀 때 사실인지 확인해 고친다 #}
+      <p class="flex flex-wrap gap-2 mt-3 text-xs font-semibold">
+        <span class="px-3 py-1 bg-secondary-container rounded-full text-on-secondary-container">아동복지법 인증시설</span>
+        <span class="px-3 py-1 bg-tertiary-fixed rounded-full text-on-tertiary-fixed-variant">어린이 안심돌봄구역</span>
+      </p>
     </div>
     <div>
       <p class="text-on-surface font-semibold">운영 안내</p>
@@ -100,6 +108,7 @@
       </p>
     </div>
   </div>
+  <p class="max-w-[1280px] mx-auto px-4 pb-6 text-on-surface-variant text-xs lg:px-8">© {% now "Y" %} {{ center.name }}. All Rights Reserved.</p>
 </footer>
 </body>
 </html>

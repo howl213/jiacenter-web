@@ -1,22 +1,12 @@
 {% extends 'center/base.html' %}
-{% load notice_format %}
+{% load notice_format static %}
 {% block main_class %}{% endblock %}
 {% block content %}
 
-{# 1. 히어로. 일러스트가 생기면 section 에 style="background-image:url(...)" 로 깔고 아래 svg 를 지운다(파일은 center/static/center/img/ 에) #}
-<section class="relative overflow-hidden bg-linear-to-br from-primary-fixed via-surface-container-low to-tertiary-fixed">
-  <svg class="absolute right-0 bottom-0 hidden h-full md:block" viewBox="0 0 520 420" aria-hidden="true">
-    <circle cx="400" cy="90" r="54" fill="#f59e0b" opacity=".9"/>
-    <path d="M0 330 Q150 240 300 310 T520 270 V420 H0Z" fill="#6cf8bb" opacity=".6"/>
-    <path d="M0 370 Q180 300 340 360 T520 340 V420 H0Z" fill="#4edea3"/>
-    <g transform="translate(250 190)">
-      <path d="M-14 70 L80 6 L174 70Z" fill="#855300"/>
-      <rect x="6" y="70" width="148" height="96" rx="6" fill="#fff"/>
-      <rect x="66" y="106" width="30" height="60" rx="4" fill="#f59e0b"/>
-      <rect x="22" y="92" width="26" height="26" rx="4" fill="#cce5ff"/>
-      <rect x="112" y="92" width="26" height="26" rx="4" fill="#cce5ff"/>
-    </g>
-  </svg>
+{# 1. 히어로. 시안의 그림(center/img/hero.jpg)을 깔고, 글자가 읽히도록 왼쪽을 흰 막으로 덮는다 #}
+<section class="relative overflow-hidden bg-surface-container-low bg-cover bg-center" style="background-image:url('{% static 'center/img/hero.jpg' %}')">
+  <div class="absolute inset-y-0 left-0 w-full bg-linear-to-r from-white/95 via-white/80 to-transparent lg:w-3/5" aria-hidden="true"></div>
+  <div class="absolute inset-0 bg-linear-to-t from-surface via-transparent to-white/30" aria-hidden="true"></div>
   <div class="relative max-w-[1280px] mx-auto px-4 pt-16 pb-28 lg:px-8 lg:pt-24 lg:pb-36">
     <div class="flex flex-col gap-4 max-w-2xl">
       <p class="inline-flex items-center gap-2 w-fit px-4 py-1 bg-secondary-container/90 rounded-full shadow-sm text-on-secondary-container text-xs font-semibold">
@@ -34,6 +24,11 @@
         </a>
         <a class="inline-flex items-center gap-2 px-6 py-2.5 bg-white/90 rounded-full shadow-sm text-secondary transition-all hover:bg-secondary-container hover:text-on-secondary-container" href="{% url 'about' %}">센터 둘러보기</a>
       </div>
+      {# shortcut: 신뢰 배지 두 줄은 시안의 견본 문구다. 실제 센터 정보로 바꿀 때 사실인지 확인해 고친다 #}
+      <ul class="flex flex-wrap items-center gap-x-6 gap-y-1 pt-2 text-on-surface-variant text-xs font-semibold">
+        <li class="flex items-center gap-1.5"><svg class="w-4 h-4 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>지자체 공식 지정 돌봄시설</li>
+        <li class="flex items-center gap-1.5"><svg class="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v8M4 3v5a3 3 0 006 0V3M7 11v10M17 21V3c-2 1-3.5 4-3.5 7 0 2 1.5 3 3.5 3"/></svg>친환경 100% 무상급식</li>
+      </ul>
     </div>
   </div>
 </section>
@@ -138,6 +133,45 @@
         </div>
       </div>
 
+      {# shortcut: 식단은 화면용 고정 문구(모의 값)다. 식단 모델을 정하면 view 에서 넘기고 이 블록을 for 로 바꾼다 #}
+      <div class="flex flex-col p-6 bg-white rounded-3xl shadow-sm transition-shadow hover:shadow-md">
+        <div class="flex items-center justify-between pb-2">
+          <h3 class="text-on-surface text-xl font-title">오늘의 건강 밥상</h3>
+          <span class="px-2 py-0.5 bg-secondary-fixed rounded-full text-on-secondary-fixed text-xs font-semibold">오늘 석식</span>
+        </div>
+        <div class="relative w-full h-44 mt-1 overflow-hidden rounded-2xl bg-surface-container-low">
+          <img class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src="{% static 'center/img/meal.jpg' %}" alt="오늘 석식 식판 사진" loading="lazy">
+          <span class="absolute left-2 bottom-2 px-2 py-0.5 bg-white/90 rounded-full backdrop-blur text-secondary text-xs font-semibold">친환경 쌀 사용</span>
+        </div>
+        <div class="flex flex-col gap-2 mt-4">
+          <p class="flex items-center justify-between gap-2"><span class="text-on-surface font-semibold">기장밥 &amp; 한우소고기미역국</span><span class="text-outline text-xs font-semibold">620 kcal</span></p>
+          <p class="text-on-surface-variant text-sm">궁중 떡갈비 구이, 계란말이, 시금치나물, 깍두기, 제철 딸기 &amp; 저지방 우유</p>
+          <p class="flex flex-wrap gap-1.5 pt-1 text-xs font-semibold">
+            <span class="px-2 py-0.5 bg-surface-container-high rounded-md text-on-surface-variant">알레르기: 대두, 소고기, 난류</span>
+            <span class="px-2 py-0.5 bg-secondary-container rounded-md text-on-secondary-container">영양사 감수 완료</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-col p-6 bg-white rounded-3xl shadow-sm transition-shadow hover:shadow-md">
+        <div class="flex items-center justify-between pb-2">
+          <h3 class="text-on-surface text-xl font-title">활동앨범</h3>
+          <a class="text-tertiary text-xs font-semibold hover:underline" href="{% url 'albums' %}">전체보기 ›</a>
+        </div>
+        {% if photos %}
+          <ul class="grid grid-cols-2 gap-2 mt-1">
+            {% for p in photos %}
+              <li><a class="group relative block h-28 overflow-hidden rounded-xl bg-surface-container-low" href="{% url 'album_detail' p.album_id %}">
+                <img class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" src="{% url 'album_photo' p.pk %}" alt="{{ p.caption|default:p.album.title }}" loading="lazy">
+                <span class="absolute inset-0 flex items-end p-2 bg-linear-to-t from-black/60 via-transparent to-transparent text-white text-xs font-semibold opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"><span class="truncate">{{ p.caption|default:p.album.title }}</span></span>
+              </a></li>
+            {% endfor %}
+          </ul>
+        {% else %}<p class="p-2 text-on-surface-variant">등록된 사진이 없습니다.</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 mt-6 md:grid-cols-2">
       <div class="flex flex-col p-6 bg-white rounded-3xl shadow-sm transition-shadow hover:shadow-md">
         <div class="flex items-center justify-between pb-2">
           <h3 class="text-on-surface text-xl font-title">프로그램</h3>
@@ -156,7 +190,7 @@
         </div>
       </div>
 
-      <div class="flex flex-col p-6 bg-white rounded-3xl shadow-sm transition-shadow hover:shadow-md md:col-span-2 lg:col-span-1">
+      <div class="flex flex-col p-6 bg-white rounded-3xl shadow-sm transition-shadow hover:shadow-md">
         <div class="flex items-center justify-between pb-2">
           <h3 class="text-on-surface text-xl font-title">센터 안내</h3>
           <a class="text-tertiary text-xs font-semibold hover:underline" href="{% url 'about' %}">센터소개 ›</a>
@@ -170,7 +204,43 @@
     </div>
   </section>
 
-  {# 5. 상담 안내 띠. 온라인 신청 폼은 없다 — 전화로만 받는다 #}
+  {# 5. 5대 핵심 돌봄 영역. 화면용 고정 문구(시안의 견본)다 #}
+  <section class="px-4 py-10 mt-10 bg-surface-container-low/60 rounded-3xl lg:px-8">
+    <div class="max-w-2xl mx-auto mb-6 text-center">
+      <span class="px-4 py-1 bg-primary-fixed rounded-full text-on-primary-fixed text-xs font-semibold">5대 핵심 복합돌봄 영역</span>
+      <h2 class="mt-2 text-on-surface text-3xl font-title">꿈나무의 약속, 든든한 하루</h2>
+      <p class="mt-2 text-on-surface-variant">단순한 돌봄을 넘어 스스로 질문하고 스스로 성장하는 아이들을 위한 5대 프로그램을 체계적으로 운영합니다.</p>
+    </div>
+    <ul class="grid grid-cols-2 gap-2 text-center md:grid-cols-5 lg:gap-4">
+      <li class="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-sm transition-transform hover:scale-105">
+        <span class="grid place-items-center w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container" aria-hidden="true"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <h3 class="text-on-surface text-lg font-title">안심 보호</h3>
+        <p class="text-on-surface-variant text-sm">일상생활 지도, 위생·보건 관리 및 급식 지원</p>
+      </li>
+      <li class="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-sm transition-transform hover:scale-105">
+        <span class="grid place-items-center w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed" aria-hidden="true"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2-1.5-5-2-8-2v14c3 0 6 .5 8 2 2-1.5 5-2 8-2V4c-3 0-6 .5-8 2z"/><path d="M12 6v14"/></svg></span>
+        <h3 class="text-on-surface text-lg font-title">기초 학습</h3>
+        <p class="text-on-surface-variant text-sm">학교 숙제 지도, 수학·독서 개별 맞춤 멘토링</p>
+      </li>
+      <li class="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-sm transition-transform hover:scale-105">
+        <span class="grid place-items-center w-12 h-12 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant" aria-hidden="true"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1.5 0 2-1 2-2s-.5-1.5-.5-2.5S14.5 15 16 15h2a3 3 0 003-3c0-5-4-9-9-9z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/></svg></span>
+        <h3 class="text-on-surface text-lg font-title">문화 체험</h3>
+        <p class="text-on-surface-variant text-sm">음악·미술·체육 및 계절별 테마 현장학습</p>
+      </li>
+      <li class="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-sm transition-transform hover:scale-105">
+        <span class="grid place-items-center w-12 h-12 rounded-full bg-error-container text-on-error-container" aria-hidden="true"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.5-7 10-7 10z"/></svg></span>
+        <h3 class="text-on-surface text-lg font-title">정서 발달</h3>
+        <p class="text-on-surface-variant text-sm">아동 심리 상담, 또래관계 코칭 및 가족 상담</p>
+      </li>
+      <li class="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl shadow-sm transition-transform hover:scale-105 col-span-2 md:col-span-1">
+        <span class="grid place-items-center w-12 h-12 rounded-full bg-secondary-fixed text-on-secondary-fixed" aria-hidden="true"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.5 0 4.5 2 4.5 4.5"/></svg></span>
+        <h3 class="text-on-surface text-lg font-title">지역사회 연계</h3>
+        <p class="text-on-surface-variant text-sm">대학생 봉사단 멘토링 및 마을 축제 참여</p>
+      </li>
+    </ul>
+  </section>
+
+  {# 6. 상담 안내 띠. 온라인 신청 폼은 없다 — 전화로만 받는다 #}
   <section class="relative flex flex-col items-center justify-between gap-6 overflow-hidden mt-10 p-6 bg-primary-container rounded-3xl shadow-lg lg:flex-row lg:p-10">
     <div class="absolute -right-10 -bottom-10 w-72 h-72 bg-primary-fixed rounded-full opacity-40 blur-2xl pointer-events-none" aria-hidden="true"></div>
     <div class="relative max-w-xl text-on-primary-container">
