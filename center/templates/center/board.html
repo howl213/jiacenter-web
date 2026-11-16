@@ -49,6 +49,6 @@
   {% empty %}<tr><td colspan="7" class="empty">등록된 아동이 없습니다.</td></tr>{% endfor %}
   </tbody>
 </table>
-<p><a class="more" href="/admin/center/attendance/">전체 기록 보기 (관리자) →</a>
+<p><a class="more" href="{% url 'admin:center_attendance_changelist' %}">전체 기록 보기 (관리자) →</a>
   · <a class="more" href="{% url 'import_children' %}">아동 명단 CSV 가져오기 →</a></p>
 {% endblock %}

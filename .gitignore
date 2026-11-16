@@ -13,3 +13,6 @@ logs/
 
 # Google Drive 동기화 임시 폴더
 .tmp.driveupload/
+
+# collectstatic 결과물 (운영 배포 때 생성)
+staticfiles/

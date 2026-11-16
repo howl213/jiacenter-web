@@ -51,6 +51,12 @@ else:
 # 이 서버가 응답할 도메인 목록. 여기 없는 host 헤더로 들어오면 Django 가 거부한다.
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+# 관리자 화면 주소. 기본은 admin/ 이고, 운영에서는 추측하기 어려운 값으로 바꾼다(SECURITY_REVIEW M-03).
+# 주소를 숨기는 것은 방어의 전부가 아니라 자동 스캐너를 줄이는 것뿐이다. 로그인 시도 제한은 별도로 있다.
+ADMIN_PATH = os.environ.get('DJANGO_ADMIN_PATH', 'admin/')
+if not ADMIN_PATH.endswith('/') or ADMIN_PATH.startswith('/'):
+    raise ImproperlyConfigured("DJANGO_ADMIN_PATH 는 'secret-xyz/' 처럼 앞에 / 없이 / 로 끝나야 합니다.")
+
 
 # Application definition
 
@@ -141,6 +147,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# 운영(DEBUG=0)에서는 runserver 가 정적 파일을 내주지 않는다. `manage.py collectstatic` 으로 여기에 모으고
+# WhiteNoise(아래 미들웨어)가 gunicorn 앞에서 내보낸다. 모은 폴더는 커밋하지 않는다(.gitignore).
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 # 첨부 파일 저장 위치. URL 로 직접 내보내지 않는다(center.views.notice_file 만 내려보낸다).
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -179,6 +188,11 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 3600       # 브라우저에 "이 사이트는 https 로만" 지시
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')  # SecurityMiddleware 바로 뒤
+    # Caddy·nginx 같은 프록시 뒤에서 돌 때만 켠다. 프록시 없이 켜면 클라이언트가 이 헤더를 직접 보내
+    # https 인 척할 수 있다. 프록시가 이 헤더를 항상 덮어쓰는지는 배치할 때 확인한다.
+    if os.environ.get('DJANGO_BEHIND_PROXY') == '1':
+        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # 센터 공용 PC 에서 로그아웃을 깜빡해도 오래 열려 있지 않게 한다.
 SESSION_COOKIE_AGE = 60 * 60 * 4           # 4시간

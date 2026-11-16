@@ -1,0 +1,13 @@
+{% extends 'center/base.html' %}
+{% block title %}{{ album.title }}{% endblock %}
+{% block content %}
+<h1>{{ album.title }}</h1>
+<time class="meta">{{ album.date|date:'Y년 m월 d일' }}</time>
+<ul class="albums">
+  {% for p in album.photos.all %}
+    <li><a href="{% url 'album_photo' p.pk %}"><img src="{% url 'album_photo' p.pk %}" alt="{{ p.caption }}" loading="lazy"></a>
+      {% if p.caption %}<span>{{ p.caption }}</span>{% endif %}</li>
+  {% empty %}<li class="empty">사진이 없습니다.</li>{% endfor %}
+</ul>
+<p><a class="more" href="{% url 'albums' %}">← 목록으로</a></p>
+{% endblock %}

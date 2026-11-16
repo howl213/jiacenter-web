@@ -60,3 +60,9 @@ body { margin: 0; font-family: "Pretendard Variable", Pretendard, -apple-system,
 .rowform input[type=text] { flex: 1; min-width: 6rem; }
 .rowform input, .rowform select { padding: .35rem; border: 1px solid #ccc; border-radius: 4px; }
 button.ghost { background: #fff; color: #047857; border: 1px solid #047857; }
+
+.albums { list-style: none; padding: 0; display: grid; gap: 1rem;
+          grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.albums a { color: #222; text-decoration: none; }
+.albums img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; display: block; }
+.albums time, .albums span { display: block; color: #888; font-size: .9rem; }
