@@ -44,7 +44,7 @@ class AlbumAdmin(admin.ModelAdmin):
     list_display = ['title', 'date']
     fieldsets = [(None, {
         'fields': ['title', 'date'],
-        'description': '사진은 PNG·JPG, 한 장 5MB, 앨범당 20장까지. 누구나 볼 수 있습니다. '
+        'description': '사진은 PNG·JPG, 한 장 10MB, 앨범당 20장까지. 누구나 볼 수 있습니다. '
                        '사이트는 사진의 위치 정보를 지우지 않으니, 올리기 전에 위치 정보를 지워 주세요.'})]
 
 
