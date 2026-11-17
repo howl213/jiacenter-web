@@ -110,7 +110,7 @@ def main():
         problems.append(f'단정 표현이 있는데 "확인하지 못한 것"이 없다: "{claims[0]}"')
     changed = [l[3:] for l in run('git', 'status', '--porcelain')[1].splitlines()]
     if any(f.startswith('src/') for f in changed):
-        py = str(Path('.venv/bin/python').resolve()) if Path('.venv/bin/python').exists() else 'python3'
+        py = str(Path('.venv/bin/python').absolute()) if Path('.venv/bin/python').exists() else 'python3'
         code, out = run(py, 'manage.py', 'check', cwd='src')
         if code:
             problems.append('manage.py check 실패: ' + out.splitlines()[-1][:120])
