@@ -77,13 +77,13 @@ class UntestedEdit(unittest.TestCase):
                                env={'PATH': '/usr/bin:/bin', 'CLAUDE_PROJECT_DIR': tmp})
         return r.stdout
 
-    EDIT = tool('Edit', file_path='ROOT/center/views.py')
+    EDIT = tool('Edit', file_path='ROOT/src/center/views.py')
     TEST = tool('Bash', command='.venv/bin/python manage.py test')
 
     def test_edit_without_test_is_blocked(self):
         out = json.loads(self.run_hook(self.EDIT))
         self.assertEqual(out['decision'], 'block')
-        self.assertIn('center/views.py', out['reason'])
+        self.assertIn('src/center/views.py', out['reason'])
         self.assertIn('테스트를 돌린 기록이 없다', out['reason'])
 
     def test_edit_then_test_passes(self):
@@ -101,7 +101,7 @@ class UntestedEdit(unittest.TestCase):
     def test_only_this_turn_counts(self):
         # 앞 턴에서 고친 것은 새 사용자 입력이 오면 지난 일이다.
         with tempfile.TemporaryDirectory() as tmp:
-            old = {'type': 'assistant', 'message': {'content': [tool('Edit', file_path=f'{tmp}/center/views.py')]}}
+            old = {'type': 'assistant', 'message': {'content': [tool('Edit', file_path=f'{tmp}/src/center/views.py')]}}
             new_prompt = {'type': 'user', 'message': {'content': '다음 질문'}}
             reply = {'type': 'assistant', 'message': {'content': [{'type': 'text', 'text': '설명만 했다.'}]}}
             path = Path(tmp) / 't.jsonl'

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stop 훅. 끝내려 할 때 아래 중 하나라도 걸리면 한 번 막고, 이유를 Claude 에게 돌려준다(Claude Code 가 그 이유를 받아 이어서 일한다).
 
-  1) 이번 턴에 center/·config/ 코드를 고쳤는데 그 뒤로 테스트(manage.py test, verify.sh 등)를 돌린 기록이 없다
+  1) 이번 턴에 src/ 코드를 고쳤는데 그 뒤로 테스트(manage.py test, verify.sh 등)를 돌린 기록이 없다
      — "할 수 있는데 안 한 확인"의 증거라서 기록으로 판정한다(세션 기록의 도구 호출).
   2) 코드가 바뀐 채인데 manage.py check 나 마이그레이션 검사가 실패한다
   3) 방금 한 마지막 답변에 "완벽하다/문제없다/안전하다" 같은 단정이 있는데 "확인하지 못한 것"이 없다
@@ -69,7 +69,7 @@ def untested_edit(uses, root):
         path = inp.get('file_path') or inp.get('notebook_path') or ''
         if name in EDIT_TOOLS and path:
             rel = os.path.relpath(os.path.abspath(path), os.path.abspath(root))
-            if rel.startswith(('center/', 'config/')):
+            if rel.startswith('src/'):
                 last = (i, rel)
     if last is None:
         return None
@@ -85,8 +85,8 @@ def overclaims(text):
     return [s.strip()[:60] for s in sentences if CLAIM.search(s) and not NEGATION.search(s)]
 
 
-def run(*cmd, timeout=30):
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+def run(*cmd, timeout=30, cwd=None):
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd=cwd)
     return r.returncode, (r.stdout + r.stderr).strip()
 
 
@@ -109,12 +109,12 @@ def main():
     if claims:
         problems.append(f'단정 표현이 있는데 "확인하지 못한 것"이 없다: "{claims[0]}"')
     changed = [l[3:] for l in run('git', 'status', '--porcelain')[1].splitlines()]
-    if any(f.startswith(('center/', 'config/')) for f in changed):
-        py = '.venv/bin/python' if Path('.venv/bin/python').exists() else 'python3'
-        code, out = run(py, 'manage.py', 'check')
+    if any(f.startswith('src/') for f in changed):
+        py = str(Path('.venv/bin/python').resolve()) if Path('.venv/bin/python').exists() else 'python3'
+        code, out = run(py, 'manage.py', 'check', cwd='src')
         if code:
             problems.append('manage.py check 실패: ' + out.splitlines()[-1][:120])
-        code, out = run(py, 'manage.py', 'makemigrations', '--check', '--dry-run')
+        code, out = run(py, 'manage.py', 'makemigrations', '--check', '--dry-run', cwd='src')
         if code:
             problems.append('모델이 바뀌었는데 마이그레이션 파일이 없다 (makemigrations)')
     if problems:

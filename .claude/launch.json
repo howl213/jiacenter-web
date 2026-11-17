@@ -4,7 +4,7 @@
     {
       "name": "center",
       "runtimeExecutable": ".venv/bin/python",
-      "runtimeArgs": ["manage.py", "runserver", "8000"],
+      "runtimeArgs": ["src/manage.py", "runserver", "8000"],
       "port": 8000
     }
   ]

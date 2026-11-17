@@ -6,7 +6,7 @@ After=network.target
 
 [Service]
 User=jiacenter
-WorkingDirectory=/srv/jiacenter
+WorkingDirectory=/srv/jiacenter/src
 # 비밀키 등은 이 파일 밖의 .env 에 둔다(권한 600, 커밋 금지). 형식은 저장소의 .env.example
 EnvironmentFile=/srv/jiacenter/.env
 # 127.0.0.1 에만 연다. 바깥에서는 Caddy 를 거쳐서만 들어온다.

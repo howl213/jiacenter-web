@@ -31,11 +31,11 @@ def main():
                  ('상위 브랜치 없음(아직 푸시 안 함)' if not run('git', 'rev-parse', '--abbrev-ref', '@{u}') else '푸시할 커밋 없음'))
 
     py = Path('.venv/bin/python')
-    if py.exists() and Path('manage.py').exists():
-        plan = run(str(py), 'manage.py', 'showmigrations', '--plan', timeout=15)
+    if py.exists() and Path('src/manage.py').exists():
+        plan = run(str(py.resolve()), 'src/manage.py', 'showmigrations', '--plan', timeout=15)
         pending = sum(1 for l in plan.splitlines() if l.strip().startswith('[ ]'))
         if pending:
-            lines.append(f'적용 안 된 마이그레이션 {pending}개 — 로컬 DB 에는 `manage.py migrate` 가 필요하다(사용자가 직접)')
+            lines.append(f'적용 안 된 마이그레이션 {pending}개 — 로컬 DB 에는 `src/manage.py migrate` 가 필요하다(사용자가 직접)')
 
     if run('git', 'config', 'core.hooksPath') != '.githooks':
         lines.append('경고: git pre-commit 훅이 꺼져 있다 — `git config core.hooksPath .githooks`')
