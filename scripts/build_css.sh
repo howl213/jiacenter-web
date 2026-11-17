@@ -5,4 +5,4 @@
 set -e
 cd "$(dirname "$0")/.."
 "${TAILWINDCSS:-$HOME/.local/share/jiacenter-web/tailwindcss}" \
-  -i center/tailwind.css -o center/static/center/tailwind.css --minify
+  -i src/center/tailwind.css -o src/center/static/center/tailwind.css --minify

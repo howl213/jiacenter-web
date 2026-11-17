@@ -1,4 +1,4 @@
-/* Tailwind 입력 파일. 결과물은 center/static/center/tailwind.css (scripts/build_css.sh 로 만든다). */
+/* Tailwind 입력 파일. 결과물은 src/center/static/center/tailwind.css (scripts/build_css.sh 로 만든다). */
 @import "tailwindcss" source(none);
 @source "./templates";
 

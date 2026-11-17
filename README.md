@@ -26,18 +26,19 @@ Django 6.1 / SQLite. 화면은 Tailwind(지금은 브라우저용 CDN 판) + Pre
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/python manage.py migrate
-.venv/bin/python manage.py createsuperuser
-.venv/bin/python manage.py runserver
+.venv/bin/pip install -r src/requirements.txt
+cd src                              # 앱 코드는 src/ 에 있다. 아래 명령은 src/ 안에서 돌린다
+../.venv/bin/python manage.py migrate
+../.venv/bin/python manage.py createsuperuser
+../.venv/bin/python manage.py runserver
 ```
 
 http://localhost:8000 에서 열린다. 환경변수를 아무것도 설정하지 않으면 개발 모드로 동작한다.
 
-테스트:
+테스트 (src/ 안에서):
 
 ```bash
-.venv/bin/python manage.py test
+../.venv/bin/python manage.py test
 ```
 
 ---
@@ -97,7 +98,7 @@ http://localhost:8000 에서 열린다. 환경변수를 아무것도 설정하�
 
 ### 알림톡
 
-경기도 알림톡 API **승인 전**이다. `center/notify.py` 의 `send_alimtalk()` 는 실제로 보내지 않고
+경기도 알림톡 API **승인 전**이다. `src/center/notify.py` 의 `send_alimtalk()` 는 실제로 보내지 않고
 `NotifyLog` 테이블에 기록만 남긴다. 승인되면 **이 함수 안에서만** 실제 호출을 추가하면 되고,
 부르는 쪽은 건드리지 않는다.
 
@@ -109,11 +110,12 @@ http://localhost:8000 에서 열린다. 환경변수를 아무것도 설정하�
 
 ```text
 mini-projetct/
-├── manage.py            Django 명령 진입점
-├── requirements.txt     파이썬 패키지 목록
-├── config/              설정·주소·wsgi
-├── center/              앱 본체 (모델·화면·주소·템플릿·시험)
-├── deploy/              서버 견본 (Caddy, systemd)
+├── src/                 앱 코드 (DB·로그·정적 파일도 여기 생김)
+│   ├── manage.py        Django 명령 진입점
+│   ├── requirements.txt 파이썬 패키지 목록
+│   ├── config/          설정·주소·wsgi
+│   ├── center/          앱 본체 (모델·화면·주소·템플릿·시험)
+│   └── deploy/          서버 견본 (Caddy, systemd)
 │
 ├── 99.result/           결과물 보관
 │   ├── docs/            확인사항·설계·문의서·설명서
@@ -130,7 +132,7 @@ mini-projetct/
 
 👉 [폴더·파일별 한 줄 설명 바로가기 — 99.result/파일-경로.md](99.result/파일-경로.md)
 
-앱 안쪽만 글로 보면:
+앱 안쪽만 글로 보면 (모두 src/ 아래):
 
 ```
 config/              설정 (settings, urls)
@@ -192,13 +194,13 @@ center/              앱 하나에 전부
 
 ### 운영 서버 구성 (견본, 모의 값 단계)
 
-`runserver` 는 개발용이다. 운영은 `gunicorn`(앱) + Caddy(HTTPS) 로 하며, 견본은 `deploy/` 에 있다.
+`runserver` 는 개발용이다. 운영은 `gunicorn`(앱) + Caddy(HTTPS) 로 하며, 견본은 `src/deploy/` 에 있다.
 **실제 서버에서 돌려 본 적은 없다.** 아래는 이 PC 에서 `DJANGO_DEBUG=0` 으로 gunicorn 을 띄워 확인한 범위다.
 
 ```bash
-.venv/bin/python manage.py collectstatic --noinput     # 정적 파일을 staticfiles/ 에 모은다 (WhiteNoise 가 내보냄)
+cd src && ../.venv/bin/python manage.py collectstatic --noinput     # 정적 파일을 staticfiles/ 에 모은다 (WhiteNoise 가 내보냄)
 DJANGO_DEBUG=0 DJANGO_SECRET_KEY=... DJANGO_ALLOWED_HOSTS=example.kr DJANGO_BEHIND_PROXY=1 \
-  .venv/bin/gunicorn config.wsgi -b 127.0.0.1:8000
+  ../.venv/bin/gunicorn config.wsgi -b 127.0.0.1:8000
 ```
 
 - 관리자 주소는 `DJANGO_ADMIN_PATH` 로 바꾼다(기본 `admin/`).
@@ -207,7 +209,7 @@ DJANGO_DEBUG=0 DJANGO_SECRET_KEY=... DJANGO_ALLOWED_HOSTS=example.kr DJANGO_BEHI
 배포 전 점검:
 
 ```bash
-DJANGO_DEBUG=0 DJANGO_SECRET_KEY='...' .venv/bin/python manage.py check --deploy
+cd src && DJANGO_DEBUG=0 DJANGO_SECRET_KEY='...' ../.venv/bin/python manage.py check --deploy
 ```
 
 ### 다루는 개인정보
@@ -322,7 +324,7 @@ main (제대로 구현)
 | 영역 | 지금 | 근거 |
 |---|---|---|
 | 핵심 기능 | 로드맵 8단계(0~7) 중 **0~4, 6 완료**. 5단계는 일부(공지 검색·서식·아동 명단 CSV 가져오기·공지 첨부 완료, 알림톡·외부 임베드 남음). 로드맵 밖으로 활동앨범 추가 | 아래 [로드맵](#로드맵) |
-| 화면 디자인 | 새 시안(Warm Sprout)으로 통일 중. 홈·머리말·꼬리말만 끝났고 나머지 화면(센터소개·공지·프로그램·앨범·로그인·내 아이·현황판·키오스크·가져오기)은 옛 모양 | `center/templates/center/` |
+| 화면 디자인 | 새 시안(Warm Sprout)으로 통일 중. 홈·머리말·꼬리말만 끝났고 나머지 화면(센터소개·공지·프로그램·앨범·로그인·내 아이·현황판·키오스크·가져오기)은 옛 모양 | `src/center/templates/center/` |
 | 작업 가드레일(하네스) | 1~6단계 구축 | `CLAUDE.md` 4-1절 |
 | 알려진 약점 조치 | 체크리스트 27칸 중 **11칸** 완료(2026-11-11 코드 대조 반영). 공개 전 필수인 1단계는 7/8 | `SECURITY_REVIEW.md` 2장 |
 | 외부 확인 대기 | **5건** (문의서 작성 4 + 정식화 때 확인 1) | `99.result/docs/확인사항.md` C |
@@ -360,7 +362,7 @@ OWASP 번호는 Top 10:2025 판이다 (`SECURITY_REVIEW.md` 와 같다).
 
 - 나머지 화면을 새 디자인으로 통일
 - Tailwind 를 CDN 판에서 빌드한 CSS 파일로 바꾸기 (배포 전)
-- 실제 클라우드 환경에서 띄워 보기 (HTTPS, 백업 포함 — 견본은 `deploy/`)
+- 실제 클라우드 환경에서 띄워 보기 (HTTPS, 백업 포함 — 견본은 `src/deploy/`)
 - 보안 로그 점검 방법 정하기 (누가·얼마나 자주 보는지)
 - 아동 정보 칸 암호화·조회용 HMAC·동의 만료·익명화 구현 (설계: `99.result/docs/개인정보-보호-설계.md`)
 - 개인정보 처리방침 초안

@@ -103,7 +103,7 @@
 
 - 가장 작은 변경으로 끝낸다. 요청하지 않은 기능·옵션·추상화를 넣지 않는다
 - 앱을 쪼개지 않는다 (모델 10개 규모)
-- 출결 판정은 `center/views.py` 의 `_toggle()` **한 곳에만** 둔다.
+- 출결 판정은 `src/center/views.py` 의 `_toggle()` **한 곳에만** 둔다.
   키오스크·현황판 두 입구가 모두 이 함수를 부른다
 - 한계가 있는 임시 구현에는 `shortcut: <한계>, <언제 올릴지>` 주석을 남긴다
 - 주석은 코드가 말하지 못하는 **왜**만 적는다
@@ -130,7 +130,7 @@
 ```bash
 git switch -c feat/기능-이름      # feat / fix / security / docs
 # 작업
-.venv/bin/python manage.py test
+(cd src && ../.venv/bin/python manage.py test)
 gh pr create                      # Squash merge
 ```
 
