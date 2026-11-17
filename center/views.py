@@ -39,8 +39,11 @@ security_log = logging.getLogger('center.security')
 
 
 def home(request):
-    # 홈에는 최근 공지 3건만. 정렬(고정 먼저, 최신순)은 Notice.Meta.ordering 이 이미 해준다.
-    return render(request, 'center/home.html', {'notices': Notice.objects.all()[:3]})
+    # 홈에는 최근 공지 3건과 최근 사진 4장만. 공지 정렬(고정 먼저, 최신순)은 Notice.Meta.ordering 이 이미 해준다.
+    photos = Photo.objects.select_related('album').order_by('-album__date', '-album_id', '-id')[:4]
+    return render(request, 'center/home.html', {'notices': Notice.objects.all()[:3],
+                                                'programs': Program.objects.all()[:3],
+                                                'photos': photos})
 
 
 def notice_list(request):

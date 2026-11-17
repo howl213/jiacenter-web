@@ -18,8 +18,20 @@ class PageTests(TestCase):
         for url in ['/', '/notices/', '/programs/', '/about/', '/attendance/']:
             self.assertEqual(self.client.get(url).status_code, 200, url)
 
+    def test_pages_load_nothing_from_other_sites(self):
+        # 모양·글꼴은 우리 static 에서만 받는다. 바깥 스크립트가 다시 들어오면 여기서 걸린다.
+        for url in ['/', '/notices/', '/programs/', '/about/', '/attendance/', '/albums/', '/login/']:
+            body = self.client.get(url).content.decode()
+            self.assertNotRegex(body, r'(src|href)="(https?:)?//', url)
+
     def test_board_requires_login(self):
         self.assertEqual(self.client.get('/attendance/board/').status_code, 302)
+
+    def test_home_quick_menu_and_logins_are_reachable(self):
+        # 헤더에서 뺀 출결·직원 로그인이 홈 어딘가에는 남아 있어야 한다.
+        body = self.client.get('/').content.decode()
+        for href in ['/about/', '/attendance/', '/my/', '/notices/?q=', 'href="/login/"','login/?next=/attendance/board/']:
+            self.assertIn(href, body, href)
 
 
 class HasherSafetyTests(TestCase):

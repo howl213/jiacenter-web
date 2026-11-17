@@ -22,7 +22,9 @@ SELF = {'scripts/check_track.py', 'scripts/test_check_track.py'}
 
 
 def git(*args):
-    return subprocess.run(['git', '-c', 'core.quotepath=false', *args], capture_output=True, text=True).stdout
+    # 글꼴·그림 같은 바이너리도 git 에 있다. 글자가 아닌 바이트는 깨진 글자로 바꿔 읽는다(표시 문자열은 일반 글자라 검사 결과는 같다).
+    return subprocess.run(['git', '-c', 'core.quotepath=false', *args], capture_output=True,
+                          text=True, encoding='utf-8', errors='replace').stdout
 
 
 def branch_name():

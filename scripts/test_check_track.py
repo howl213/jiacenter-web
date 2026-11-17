@@ -62,6 +62,16 @@ class Track(Base):
         self.put('scripts/export_tool.py', 'MARKER = "[실습 A05]"\n')
         self.assertEqual(self.run_script(TRACK, 'tree', branch='feat/x')[0], 0)
 
+    def test_binary_files_do_not_crash_the_check(self):
+        # 글꼴 파일이 들어왔을 때 UnicodeDecodeError 로 검사가 죽던 문제(PR #30). 바이너리 옆의 일반 파일은 그대로 걸러야 한다.
+        (self.dir / 'f.woff2').write_bytes(b'wOF2\xfe\xff\x00\x80' * 50)
+        self.git('add', 'f.woff2')
+        self.put('a.py', 'x = 1  # [실습 A05] 일부러 취약\n')
+        code, err = self.run_script(TRACK, 'tree', branch='feat/x')
+        self.assertEqual(code, 1)
+        self.assertIn('a.py:1', err)
+        self.assertNotIn('Traceback', err)
+
     def test_main_rejects_vuln_commits_in_history(self):
         self.put('a.py', 'x = 1\n')
         self.commit('base')

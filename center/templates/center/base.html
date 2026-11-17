@@ -4,38 +4,82 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}{{ center.name }}{% endblock %}</title>
+{# tailwind.css 는 center/tailwind.css 에서 scripts/build_css.sh 로 뽑은 결과물이다. 템플릿의 모양 이름을 바꾸면 다시 뽑는다 #}
+<link rel="stylesheet" href="{% static 'center/tailwind.css' %}">
 <link rel="stylesheet" href="{% static 'center/style.css' %}">
 </head>
-<body>
-<header>
-  <a class="brand" href="{% url 'home' %}">{{ center.name }}</a>
-  <nav>
-    <a href="{% url 'notices' %}">공지사항</a>
-    <a href="{% url 'program_list' %}">프로그램</a>
-    <a href="{% url 'albums' %}">활동앨범</a>
-    <a href="{% url 'about' %}">센터 소개</a>
-    <a href="{% url 'kiosk' %}">출결</a>
-    {% if user.is_staff %}
-      <a class="staff" href="{% url 'board' %}">출결 관리</a>
-      <span class="who">{{ user.get_username }} 님</span>
-      {# Django 5 부터 로그아웃은 POST 만 받는다 — 링크 클릭만으로 남을 로그아웃시키지 못하게 #}
-      <form method="post" action="{% url 'admin:logout' %}">{% csrf_token %}
-        <button type="submit" class="linkbtn">로그아웃</button>
-      </form>
-    {% elif user.is_authenticated %}
-      <a class="staff" href="{% url 'my' %}">내 아이</a>
-      <form method="post" action="{% url 'admin:logout' %}">{% csrf_token %}
-        <button type="submit" class="linkbtn">로그아웃</button>
-      </form>
-    {% else %}
-      <a class="staff" href="{% url 'login' %}">보호자 로그인</a>
-      <a class="staff" href="{% url 'admin:login' %}?next={% url 'board' %}">직원 로그인</a>
-    {% endif %}
-  </nav>
+<body class="flex flex-col min-h-screen">
+<header class="sticky top-0 z-50 bg-white/90 shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl">
+  <div class="flex flex-wrap items-center gap-x-6 gap-y-2 max-w-[1280px] mx-auto px-4 py-3 lg:px-8">
+    <a class="group flex items-center gap-2" href="{% url 'home' %}">
+      <span class="grid place-items-center w-10 h-10 bg-secondary-container rounded-full text-on-secondary-container transition-transform group-hover:scale-105" aria-hidden="true">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-9"/><path d="M12 12c0-4 3-7 8-7 0 5-3 8-8 7z"/><path d="M12 15c0-3-2-5-7-5 0 4 3 6 7 5z"/></svg>
+      </span>
+      <span class="flex flex-col">
+        <span class="text-on-surface text-xl leading-tight font-title">{{ center.name }}</span>
+        <span class="text-secondary text-xs font-semibold">아이들의 밝은 꿈이 자라는 곳</span>
+      </span>
+    </a>
+
+    {# 로그인 쪽 버튼은 오른쪽 끝, 좁은 화면에서는 메뉴가 아랫줄로 내려간다 #}
+    <div class="flex items-center gap-2 order-2 ml-auto text-sm font-semibold lg:order-3">
+      {% if user.is_staff %}
+        <a class="px-4 py-2 bg-primary-container rounded-full shadow-sm text-on-primary-container transition-all hover:bg-primary-fixed-dim hover:scale-[1.02]" href="{% url 'board' %}">출결 관리</a>
+        <span class="hidden text-on-surface-variant font-normal sm:inline">{{ user.get_username }} 님</span>
+      {% elif user.is_authenticated %}
+        <a class="px-4 py-2 bg-primary-container rounded-full shadow-sm text-on-primary-container transition-all hover:bg-primary-fixed-dim hover:scale-[1.02]" href="{% url 'my' %}">내 아이</a>
+      {% else %}
+        <a class="hidden items-center gap-1.5 px-4 py-2 bg-primary-container rounded-full shadow-sm text-on-primary-container transition-all hover:bg-primary-fixed-dim hover:scale-[1.02] sm:inline-flex" href="tel:{{ center.tel }}"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>입소 및 돌봄 상담</a>
+        <a class="px-4 py-2 bg-primary-fixed rounded-full text-on-primary-fixed transition-colors hover:bg-primary-fixed-dim" href="{% url 'login' %}">보호자 로그인</a>
+        <a class="hidden px-4 py-2 bg-surface-container-low rounded-full text-on-surface transition-colors hover:bg-surface-container-high md:inline-flex" href="{% url 'admin:login' %}?next={% url 'board' %}">선생님 로그인</a>
+      {% endif %}
+      {% if user.is_authenticated %}
+        {# Django 5 부터 로그아웃은 POST 만 받는다 — 링크 클릭만으로 남을 로그아웃시키지 못하게 #}
+        <form method="post" action="{% url 'admin:logout' %}">{% csrf_token %}
+          <button type="submit" class="px-4 py-2 bg-surface-container-low rounded-full text-on-surface cursor-pointer transition-colors hover:bg-surface-container-high">로그아웃</button>
+        </form>
+      {% endif %}
+    </div>
+
+    <nav class="flex gap-1 order-3 w-full overflow-x-auto text-on-surface-variant text-sm font-semibold lg:order-2 lg:w-auto" aria-label="주 메뉴">
+      <a class="px-2.5 py-1.5 rounded-full whitespace-nowrap transition-colors sm:px-4 hover:bg-primary-fixed hover:text-on-surface" href="{% url 'about' %}">센터소개</a>
+      <a class="px-2.5 py-1.5 rounded-full whitespace-nowrap transition-colors sm:px-4 hover:bg-primary-fixed hover:text-on-surface" href="{% url 'program_list' %}">프로그램 안내</a>
+      <a class="px-2.5 py-1.5 rounded-full whitespace-nowrap transition-colors sm:px-4 hover:bg-primary-fixed hover:text-on-surface" href="{% url 'notices' %}">공지사항</a>
+      <a class="px-2.5 py-1.5 rounded-full whitespace-nowrap transition-colors sm:px-4 hover:bg-primary-fixed hover:text-on-surface" href="{% url 'albums' %}">활동앨범</a>
+    </nav>
+  </div>
 </header>
-<main>{% block content %}{% endblock %}</main>
-<footer>
-  {{ center.name }} · {{ center.tel }} · {{ center.address }}
+
+<main class="{% block main_class %}page{% endblock %} flex-1 w-full">{% block content %}{% endblock %}</main>
+
+<footer class="mt-10 bg-surface-container-low">
+  <div class="grid grid-cols-1 gap-6 max-w-[1280px] mx-auto px-4 py-10 text-on-surface-variant text-sm md:grid-cols-3 lg:px-8">
+    <div>
+      <p class="text-on-surface text-xl font-title">{{ center.name }}</p>
+      <p class="mt-2 leading-relaxed">지역 아동의 방과후 돌봄과 학습, 급식, 정서 지원을 제공합니다.</p>
+      {# shortcut: 배지 두 개는 시안의 견본 문구다. 실제 센터 정보로 바꿀 때 사실인지 확인해 고친다 #}
+      <p class="flex flex-wrap gap-2 mt-3 text-xs font-semibold">
+        <span class="px-3 py-1 bg-secondary-container rounded-full text-on-secondary-container">아동복지법 인증시설</span>
+        <span class="px-3 py-1 bg-tertiary-fixed rounded-full text-on-tertiary-fixed-variant">어린이 안심돌봄구역</span>
+      </p>
+    </div>
+    <div>
+      <p class="text-on-surface font-semibold">운영 안내</p>
+      <p class="mt-2">{{ center.hours }}</p>
+    </div>
+    <div>
+      <p class="text-on-surface font-semibold">연락처 및 오시는 길</p>
+      <p class="mt-2"><strong class="text-on-surface">대표전화</strong> {{ center.tel }}</p>
+      <p><strong class="text-on-surface">소재지</strong> {{ center.address }}</p>
+      <p class="flex gap-4 mt-3">
+        <a class="underline hover:text-on-surface" href="{% url 'kiosk' %}">출석 체크</a>
+        {% if not user.is_authenticated %}
+          <a class="underline hover:text-on-surface" href="{% url 'admin:login' %}?next={% url 'board' %}">직원 로그인</a>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+  <p class="max-w-[1280px] mx-auto px-4 pb-6 text-on-surface-variant text-xs lg:px-8">© {% now "Y" %} {{ center.name }}. All Rights Reserved.</p>
 </footer>
 </body>
 </html>
