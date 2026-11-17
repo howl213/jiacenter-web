@@ -107,6 +107,31 @@ http://localhost:8000 에서 열린다. 환경변수를 아무것도 설정하�
 
 ## 프로젝트 구조
 
+```text
+mini-projetct/
+├── manage.py            Django 명령 진입점
+├── requirements.txt     파이썬 패키지 목록
+├── config/              설정·주소·wsgi
+├── center/              앱 본체 (모델·화면·주소·템플릿·시험)
+├── deploy/              서버 견본 (Caddy, systemd)
+│
+├── 99.result/           결과물 보관
+│   ├── docs/            확인사항·설계·문의서·설명서
+│   ├── *.svg            흐름도 3장
+│   └── 파일-경로.md     폴더별 상세 설명
+│
+├── scripts/             하네스: 자동 점검 스크립트와 시험
+├── .claude/ .githooks/ .github/    훅·커밋 검사·CI
+│
+├── CLAUDE.md            작업 지침
+├── README.md            개요·실행법
+└── SECURITY_REVIEW.md   보안 점검 보고서
+```
+
+👉 [폴더·파일별 한 줄 설명 바로가기 — 99.result/파일-경로.md](99.result/파일-경로.md)
+
+앱 안쪽만 글로 보면:
+
 ```
 config/              설정 (settings, urls)
 center/              앱 하나에 전부
