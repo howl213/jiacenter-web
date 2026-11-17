@@ -41,7 +41,7 @@ def check_tree():
             problems.append('docs/vuln-manifest.md (취약점 삽입 목록)가 main 갈래에 있다')
         # docs/ 는 설명 글이, scripts/ 는 표시 문자열을 다루는 도구와 시험이 있어 뺀다. 코드·템플릿·설정만 본다.
         for f in files:
-            if f in SELF or f.startswith(('docs/', 'scripts/')):
+            if f in SELF or f.startswith(('docs/', '99.result/', 'scripts/')):
                 continue
             text = git('show', f':{f}')
             for i, line in enumerate(text.splitlines(), 1):

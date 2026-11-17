@@ -26,7 +26,7 @@ bad() { echo "누출 검사 [$1] $2" >&2; fail=1; }
 skip_content='^scripts/(check_leaks\.sh|test_check_leaks\.py)$'
 
 forbidden_name='(^|/)(db\.sqlite3|\.env|id_rsa|[^/]*\.(pem|key|sqlite3))$|^logs/'
-external_name='^(SECURITY_REVIEW\.md|CLAUDE\.md)$|^docs/|^\.claude/'
+external_name='^(SECURITY_REVIEW\.md|CLAUDE\.md)$|^docs/|^99\.result/|^\.claude/'
 
 email='[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}'
 email_ok='@users\.noreply\.github\.com|noreply@anthropic\.com|@example\.(com|org)'

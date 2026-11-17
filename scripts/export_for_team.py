@@ -24,7 +24,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 MARKER = re.compile(r'\[실습')
-EXCLUDE_DIRS = ('docs/', '.claude/', '.githooks/', '.github/', 'scripts/')
+EXCLUDE_DIRS = ('docs/', '99.result/', '.claude/', '.githooks/', '.github/', 'scripts/')
 EXCLUDE_FILES = {'CLAUDE.md', 'SECURITY_REVIEW.md', 'README.md'}
 EXCLUDE_SUFFIX = ('.svg',)
 TEXT_SUFFIX = ('.py', '.html', '.css', '.txt', '.yml', '.yaml', '.md', '.example')
