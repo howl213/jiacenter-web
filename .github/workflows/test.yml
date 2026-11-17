@@ -26,9 +26,9 @@ jobs:
         working-directory: src
         run: python manage.py makemigrations --check --dry-run
       - name: 개인정보·금지 파일 검사
-        run: scripts/check_leaks.sh --all
+        run: harness_script/check_leaks.sh --all
       - name: 하네스 스크립트 테스트
-        run: python -m unittest discover -s scripts
+        run: python -m unittest discover -s harness_script
       - name: 보안 설정 점검
         # 운영 설정(DEBUG=0)에서 Django 자체 점검을 돌린다. 경고가 하나라도 있으면 실패한다
         # (2026-11-09 경고 0건으로 맞춤. HSTS preload 는 이유를 적고 일부러 끈 것이다).

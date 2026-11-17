@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-exec "$(git rev-parse --show-toplevel)/scripts/check_leaks.sh" --staged
+exec "$(git rev-parse --show-toplevel)/harness_script/check_leaks.sh" --staged

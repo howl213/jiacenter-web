@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-GUARD = ROOT / 'scripts' / 'claude_guard.py'
+GUARD = ROOT / 'harness_script' / 'claude_guard.py'
 CLAUDE_MD = ROOT / 'CLAUDE.md'
 COMMAND_START = ('python3', '.venv', 'git', 'gh', 'sqlite3')
 

@@ -1,6 +1,6 @@
 """stop_check.py 의 단정 표현 점검 시험. 실제 세션 기록 모양(assistant → message.content[] 의 text)을 흉내 낸다.
 
-실행: python -m unittest discover -s scripts
+실행: python -m unittest discover -s harness_script
 """
 import json
 import subprocess
@@ -93,7 +93,7 @@ class UntestedEdit(unittest.TestCase):
         self.assertIn('block', self.run_hook(self.TEST, self.EDIT))
 
     def test_verify_script_counts_as_a_test(self):
-        self.assertEqual(self.run_hook(self.EDIT, tool('Bash', command='bash scripts/verify.sh')), '')
+        self.assertEqual(self.run_hook(self.EDIT, tool('Bash', command='bash harness_script/verify.sh')), '')
 
     def test_edit_outside_code_dirs_is_ignored(self):
         self.assertEqual(self.run_hook(tool('Edit', file_path='ROOT/docs/확인사항.md')), '')

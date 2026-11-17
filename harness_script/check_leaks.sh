@@ -23,7 +23,7 @@ fail=0
 bad() { echo "누출 검사 [$1] $2" >&2; fail=1; }
 
 # 이 스크립트와 그 테스트는 검사 대상 패턴을 담고 있으므로 내용 검사에서 뺀다.
-skip_content='^scripts/(check_leaks\.sh|test_check_leaks\.py)$'
+skip_content='^harness_script/(check_leaks\.sh|test_check_leaks\.py)$'
 
 forbidden_name='(^|/)(db\.sqlite3|\.env|id_rsa|[^/]*\.(pem|key|sqlite3))$|^logs/'
 external_name='^(SECURITY_REVIEW\.md|CLAUDE\.md)$|^docs/|^99\.result/|^\.claude/'

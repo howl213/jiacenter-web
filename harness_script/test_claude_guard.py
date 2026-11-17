@@ -1,6 +1,6 @@
 """claude_guard.py 가 막을 것은 막고 묻을 것은 묻고 나머지는 통과시키는지 확인한다.
 
-실행: python -m unittest discover -s scripts
+실행: python -m unittest discover -s harness_script
 """
 import json
 import subprocess
@@ -88,7 +88,7 @@ class Guard(unittest.TestCase):
 
     def test_merge_export_and_main_edits_ask(self):
         self.check('ASK', 'gh pr merge 5 --squash')
-        self.check('ASK', 'python3 scripts/export_for_team.py ~/Desktop/x')
+        self.check('ASK', 'python3 harness_script/export_for_team.py ~/Desktop/x')
         self.check('ASK', 'git commit -m x', self.main_repo)        # main 위에서
         self.check('ASK', 'git merge feat/x', self.main_repo)
         self.check('ASK', 'git push origin HEAD:main')               # 어느 브랜치에서든 main 으로 가는 푸시

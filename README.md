@@ -122,7 +122,7 @@ mini-projetct/
 │   ├── *.svg            흐름도 3장
 │   └── 파일-경로.md     폴더별 상세 설명
 │
-├── scripts/             하네스: 자동 점검 스크립트와 시험
+├── harness_script/             하네스: 자동 점검 스크립트와 시험
 ├── .claude/ .githooks/ .github/    훅·커밋 검사·CI
 │
 ├── CLAUDE.md            작업 지침

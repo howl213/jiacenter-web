@@ -1,6 +1,6 @@
 """check_track.py / check_manifest.py 시험. 임시 저장소를 만들어 확인한다.
 
-실행: python -m unittest discover -s scripts
+실행: python -m unittest discover -s harness_script
 """
 import os
 import subprocess
@@ -59,7 +59,7 @@ class Track(Base):
 
     def test_tools_in_scripts_may_mention_the_marker(self):
         # 표시를 다루는 도구와 그 시험은 표시 문자열을 담고 있어도 된다
-        self.put('scripts/export_tool.py', 'MARKER = "[실습 A05]"\n')
+        self.put('harness_script/export_tool.py', 'MARKER = "[실습 A05]"\n')
         self.assertEqual(self.run_script(TRACK, 'tree', branch='feat/x')[0], 0)
 
     def test_binary_files_do_not_crash_the_check(self):

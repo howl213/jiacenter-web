@@ -5,7 +5,7 @@
 - 확인(ask): 사람이 정하는 지점(CLAUDE.md 0절 표)에 해당하는 명령 —
              타 저장소로 쓰기, 강제 푸시·되돌리기 어려운 git 명령, 새 저장소 만들기, 병합, main 에 직접 커밋·푸시·병합,
              실제 DB 를 바꾸는 명령, 팀에 넘길 폴더 만들기
-파일 내용 검사는 하지 않는다 — 그건 scripts/check_leaks.sh 가 git 훅과 CI 에서 한다.
+파일 내용 검사는 하지 않는다 — 그건 harness_script/check_leaks.sh 가 git 훅과 CI 에서 한다.
 """
 import json
 import re

@@ -16,7 +16,7 @@
 | "됐다"의 기준 | 아는 약점은 막고, 모르는 것은 "모른다"고 쓴다. 안전하다고 단정하지 않는다 | 의도해서 심은 것과 심지 않은 것을 구분해 기록한다. 팀이 심지 않은 곳에서 찾으면 `main` 의 결함으로 되돌려 본다 |
 | 절대 안 하는 것 | 취약 코드를 들이기, 실제 정보를 코드·문서에 적기 | 취약한 서버를 로컬(내 컴퓨터·Docker) 밖에서 돌리기, 실제 정보, 답안지(`SECURITY_REVIEW.md`) 포함 |
 
-두 갈래는 섞지 않는다 (`scripts/check_track.py` 가 본다). `main` 과 `vuln` 은 처음부터 따로 가는 갈래라서 어느 쪽으로도 합치지 않는다.
+두 갈래는 섞지 않는다 (`harness_script/check_track.py` 가 본다). `main` 과 `vuln` 은 처음부터 따로 가는 갈래라서 어느 쪽으로도 합치지 않는다.
 
 **지금 단계 (2026-11-16 사용자 확인)**: 목표 ②의 실습본은 실습할 수 있게 완성해 팀에 넘겼다. 팀은 각자 도구로 진단하고 보고서를 쓰는 중이고,
 사용자와 Claude 는 `vuln` 에서 **손을 뗐다** — 시키지 않으면 `vuln` 을 고치지 않는다(팀이 찾은 것은 `99.result/docs/발견-순환.md` 대로 `main` 에서만 다룬다).
@@ -26,13 +26,13 @@
 **이 문서와 하네스가 있는 이유**: 사용자와 Claude 가 함께 일할 때 (1) 목표에서 벗어나고, (2) 근거 없이 답하고,
 (3) 실제로 돌려 보지 않고 "괜찮다/안전하다"고 말하는 것을 막기 위해서다. 아래 4-1 절이 그 장치들이다.
 
-**사람이 정하는 것** — Claude 가 혼자 정하지 않는다. 표의 "훅" 줄은 `scripts/claude_guard.py` 가 실행 전에 먼저 묻고,
-`scripts/test_decision_table.py` 가 이 표의 예시 명령이 정말 걸리는지 확인한다(표와 훅이 어긋나면 시험이 실패한다).
+**사람이 정하는 것** — Claude 가 혼자 정하지 않는다. 표의 "훅" 줄은 `harness_script/claude_guard.py` 가 실행 전에 먼저 묻고,
+`harness_script/test_decision_table.py` 가 이 표의 예시 명령이 정말 걸리는지 확인한다(표와 훅이 어긋나면 시험이 실패한다).
 
 | 결정 지점 | 사람이 끼는 방식 | 훅이 묻는 예 / 다른 장치 |
 |---|---|---|
 | 실제 정보로 전환 | 대화 + 체크리스트 | `99.result/docs/확인사항.md`의 "실제 데이터 투입 전 체크리스트". 명령 모양이 없어 훅으로는 못 막는다 |
-| 팀에게 코드 넘기기 | 훅 | `python3 scripts/export_for_team.py ~/Desktop/team-export` (올리는 것은 아래 "다른 저장소로 쓰기") |
+| 팀에게 코드 넘기기 | 훅 | `python3 harness_script/export_for_team.py ~/Desktop/team-export` (올리는 것은 아래 "다른 저장소로 쓰기") |
 | 다른 저장소로 쓰기 | 훅 | `git push origin HEAD` · `gh pr create --repo SJH910/Web-Hacking` · `gh repo create howl213/x --private` |
 | 로컬 DB 바꾸기 | 훅 | `.venv/bin/python manage.py migrate` · `.venv/bin/python manage.py seed_dummy` · `sqlite3 db.sqlite3` |
 | 되돌리기 어려운 git | 훅 | `git push --force origin x` · `git reset --hard HEAD~1` · `git branch -D x` · `git filter-repo --path x` |
@@ -66,7 +66,7 @@
 3. 근거는 이번에 직접 연 코드와 실행 결과다. 문서는 낡았을 수 있으니 코드와 맞는 것만 쓰고, 다르면 코드대로 일하고 문서가 낡았다고 알린다. 추측으로 채우지 않는다. 보고는 시킨 일의 결과 중심으로 쓴다. 내가 할 수 있는 확인(시험 실행, 파일 열기, 명령 실행, 브라우저 확인)은 보고 전에 직접 하고, 할 수 있는데 안 한 것을 "확인하지 못한 것"에 적지 않는다. 내가 못 하는 것(실물 장비·외부 기관·배포 환경 등)만 "확인하지 못한 것"에 쓰되 왜 못 하는지와 확인 방법을 한 줄씩 붙이고, 시킨 일의 결과를 바꾸지 않는 항목은 쓰지 않는다. 끝내려는데 점검 훅이 막으면 답의 첫머리에 막힌 이유와 한 조치를 쓴다. 끝났으면 "완료"라고 쓰고 "안전하다/문제없다"는 쓰지 않는다. 개발용 기본값(`DJANGO_DEBUG=1` 등)은 위험으로 쓰지 않는다.
 4. 사용자가 시킨 일이 끝났을 때만 커밋까지 한다. 사용자가 아직 결과를 보지 않은 시안·초안은 커밋 전에 "커밋할까요?"를 묻는다. 시키지 않은 문서·메모리 갱신은 채팅에 먼저 말하고 승인받은 뒤 적는다. 푸시·PR·병합, 폴더·브랜치 만들기는 사용자가 시킬 때만 한다. 하네스·지침을 바꾼 보고에는 "켜짐/안 켜짐"(main 병합, 로컬 pull 여부)을 먼저 쓴다.
 
-이 네 줄이 원본이다. 훅(`scripts/prompt_reminder.py`)은 이 줄을 그대로 복사해 넣고, `scripts/test_prompt_reminder.py` 가 두 곳이 같은지 비교한다. 규칙을 고칠 때는 여기만 고치고 훅에 복사한다. 메모리와 세션 브리핑에는 규칙 문장을 다시 쓰지 않는다.
+이 네 줄이 원본이다. 훅(`harness_script/prompt_reminder.py`)은 이 줄을 그대로 복사해 넣고, `harness_script/test_prompt_reminder.py` 가 두 곳이 같은지 비교한다. 규칙을 고칠 때는 여기만 고치고 훅에 복사한다. 메모리와 세션 브리핑에는 규칙 문장을 다시 쓰지 않는다.
 
 **기억에 의존해 단언하지 않는다.** 수치, 버전, 외부 서비스 정책은 확인한 것만 말한다.
 
@@ -112,16 +112,16 @@
 
 ## 4-1. 하네스 (자동 점검)
 
-- 클론한 뒤 한 번 `git config core.hooksPath .githooks` — 커밋 직전에 `scripts/check_leaks.sh --staged` 가 돈다
-- 개인정보·금지 파일 판정은 `scripts/check_leaks.sh` **한 곳에서만** 한다. git 훅, CI, 다른 저장소로 파일을 보낼 때(`--external`)가 모두 이 스크립트를 부른다
-- Claude 의 위험 명령(타 저장소 쓰기, 강제 푸시, 실제 DB 마이그레이션, `--no-verify`)은 `scripts/claude_guard.py` 가 `.claude/settings.json` 훅으로 막거나 묻는다
-- 사용자가 질문을 보낼 때마다 `scripts/prompt_reminder.py` 가 2절의 규칙 네 줄을 그대로 다시 넣는다. 일깨우기일 뿐이라 지켰는지는 사람이 본다
-- 두 갈래가 섞이지 않게 `scripts/check_track.py` 가 본다 — main 에는 취약판 표시(`[실습 A0N]`, 배너, 삽입 목록)가 없어야 하고, vuln 에는 답안지(`SECURITY_REVIEW.md`)가 없어야 하며, vuln → main PR 은 막는다
-- 삽입 목록(`docs/vuln-manifest.md`)의 항목마다 같은 이름의 커밋이 있는지는 `scripts/check_manifest.py` 가 본다
-- 팀에게 vuln 코드를 넘길 때는 `scripts/export_for_team.py <새 폴더>` 로 폴더를 만든다(내부 문서·시험·답안지 제외, 심은 곳의 설명 주석 삭제, 검사 통과해야 끝남). 푸시는 사용자 확인 뒤에 직접. 심은 곳의 설명은 반드시 `# [실습 A0N] ...` 주석 줄로만 쓴다
+- 클론한 뒤 한 번 `git config core.hooksPath .githooks` — 커밋 직전에 `harness_script/check_leaks.sh --staged` 가 돈다
+- 개인정보·금지 파일 판정은 `harness_script/check_leaks.sh` **한 곳에서만** 한다. git 훅, CI, 다른 저장소로 파일을 보낼 때(`--external`)가 모두 이 스크립트를 부른다
+- Claude 의 위험 명령(타 저장소 쓰기, 강제 푸시, 실제 DB 마이그레이션, `--no-verify`)은 `harness_script/claude_guard.py` 가 `.claude/settings.json` 훅으로 막거나 묻는다
+- 사용자가 질문을 보낼 때마다 `harness_script/prompt_reminder.py` 가 2절의 규칙 네 줄을 그대로 다시 넣는다. 일깨우기일 뿐이라 지켰는지는 사람이 본다
+- 두 갈래가 섞이지 않게 `harness_script/check_track.py` 가 본다 — main 에는 취약판 표시(`[실습 A0N]`, 배너, 삽입 목록)가 없어야 하고, vuln 에는 답안지(`SECURITY_REVIEW.md`)가 없어야 하며, vuln → main PR 은 막는다
+- 삽입 목록(`docs/vuln-manifest.md`)의 항목마다 같은 이름의 커밋이 있는지는 `harness_script/check_manifest.py` 가 본다
+- 팀에게 vuln 코드를 넘길 때는 `harness_script/export_for_team.py <새 폴더>` 로 폴더를 만든다(내부 문서·시험·답안지 제외, 심은 곳의 설명 주석 삭제, 검사 통과해야 끝남). 푸시는 사용자 확인 뒤에 직접. 심은 곳의 설명은 반드시 `# [실습 A0N] ...` 주석 줄로만 쓴다
 - 팀이 찾은 취약점은 `99.result/docs/발견-순환.md` 절차로 처리한다 (의도/비의도 분류 → main 에서 재현 → 시험 먼저 → main 수정. vuln 에는 합치지 않는다)
-- `/verify`(= `scripts/verify.sh`)가 테스트·마이그레이션·개인정보·갈래 검사를 한 번에 돌린다. 세션 시작 때는 상태를 요약해 주고, 끝내려 할 때는 stop 훅이 한 번 막고 이유를 돌려준다(코드를 고친 뒤 테스트 기록이 없을 때, 빠른 점검 실패, 확인 근거 없는 단정)
-- 스크립트들의 테스트: `python -m unittest discover -s scripts`
+- `/verify`(= `harness_script/verify.sh`)가 테스트·마이그레이션·개인정보·갈래 검사를 한 번에 돌린다. 세션 시작 때는 상태를 요약해 주고, 끝내려 할 때는 stop 훅이 한 번 막고 이유를 돌려준다(코드를 고친 뒤 테스트 기록이 없을 때, 빠른 점검 실패, 확인 근거 없는 단정)
+- 스크립트들의 테스트: `python -m unittest discover -s harness_script`
 
 ---
 
