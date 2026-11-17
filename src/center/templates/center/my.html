@@ -1,19 +1,40 @@
 {% extends 'center/base.html' %}
 {% block title %}내 아이 출결{% endblock %}
+{% block main_class %}{% endblock %}
 {% block content %}
-<h1>내 아이 출결 <small>(최근 30일)</small></h1>
-{% for child, records in rows %}
-  <h2>{{ child.name }}</h2>
-  <table>
-    <tr><th>날짜</th><th>입실</th><th>퇴실</th><th>사유</th></tr>
-    {% for r in records %}
-      <tr><td>{{ r.date|date:'m.d' }}</td>
-          <td>{{ r.check_in|time:'H:i'|default:'-' }}</td>
-          <td>{{ r.check_out|time:'H:i'|default:'-' }}</td>
-          <td>{{ r.status }}</td></tr>
-    {% empty %}<tr><td colspan="4" class="empty">기록이 없습니다.</td></tr>{% endfor %}
-  </table>
-{% empty %}
-  <p class="empty">연결된 아이가 없습니다. 센터에 문의해 주세요.</p>
-{% endfor %}
+<div class="max-w-3xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+  <div class="mb-8">
+    <span class="inline-block px-3 py-1 mb-3 bg-secondary-container rounded-full text-secondary text-sm font-semibold">보호자 전용</span>
+    <h1 class="text-on-surface text-2xl font-extrabold tracking-tight sm:text-3xl">내 아이 출결 <small class="text-on-surface-variant text-base font-medium">(최근 30일)</small></h1>
+  </div>
+
+  <div class="space-y-8">
+    {% for child, records in rows %}
+    <section class="overflow-hidden bg-surface-container-low border border-outline/20 rounded-3xl shadow-sm">
+      <h2 class="px-6 py-4 bg-surface-container text-on-surface text-lg font-bold">{{ child.name }}</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-on-surface-variant text-xs">
+            <tr><th class="px-6 py-3 text-left font-semibold">날짜</th><th class="px-3 py-3 text-left font-semibold">입실</th><th class="px-3 py-3 text-left font-semibold">퇴실</th><th class="px-6 py-3 text-left font-semibold">사유</th></tr>
+          </thead>
+          <tbody class="divide-y divide-outline/10 text-on-surface">
+            {% for r in records %}
+            <tr>
+              <td class="px-6 py-3">{{ r.date|date:'m.d' }}</td>
+              <td class="px-3 py-3">{{ r.check_in|time:'H:i'|default:'-' }}</td>
+              <td class="px-3 py-3">{{ r.check_out|time:'H:i'|default:'-' }}</td>
+              <td class="px-6 py-3">{{ r.status }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="px-6 py-8 text-center text-on-surface-variant">기록이 없습니다.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {% empty %}
+    <p class="py-16 text-center bg-surface-container-low border border-outline/20 rounded-3xl text-on-surface-variant">연결된 아이가 없습니다. 센터에 문의해 주세요.</p>
+    {% endfor %}
+  </div>
+</div>
 {% endblock %}

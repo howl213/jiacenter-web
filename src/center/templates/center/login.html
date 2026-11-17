@@ -1,10 +1,16 @@
 {% extends 'center/base.html' %}
 {% block title %}보호자 로그인{% endblock %}
+{% block main_class %}{% endblock %}
 {% block content %}
-<h1>보호자 로그인</h1>
-<form method="post">{% csrf_token %}
-  {{ form.as_p }}
-  <input type="hidden" name="next" value="{{ next }}">
-  <button type="submit">로그인</button>
-</form>
+<div class="max-w-md mx-auto px-4 py-12 sm:py-20">
+  <div class="p-6 bg-surface-container-low border border-outline/20 rounded-3xl shadow-sm sm:p-10">
+    <h1 class="mb-6 text-on-surface text-2xl font-extrabold text-center">보호자 로그인</h1>
+    {# 입력칸 모양은 form.as_p 가 만든 input 에 아래 변형으로 입힌다 #}
+    <form method="post" class="space-y-4 text-on-surface text-sm [&_p]:space-y-1 [&_label]:block [&_label]:font-semibold [&_input]:w-full [&_input]:px-4 [&_input]:py-2.5 [&_input]:bg-white [&_input]:border [&_input]:border-outline/30 [&_input]:rounded-2xl [&_.errorlist]:text-error [&_.errorlist]:text-xs">{% csrf_token %}
+      {{ form.as_p }}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="w-full px-5 py-3 bg-primary rounded-2xl shadow-sm text-on-primary font-bold cursor-pointer hover:opacity-90">로그인</button>
+    </form>
+  </div>
+</div>
 {% endblock %}

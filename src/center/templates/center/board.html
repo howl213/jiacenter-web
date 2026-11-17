@@ -1,54 +1,67 @@
 {% extends 'center/base.html' %}
 {% block title %}출결 현황판{% endblock %}
+{% block main_class %}{% endblock %}
 {% block content %}
-<h1>출결 현황판</h1>
+<div class="max-w-[1280px] mx-auto px-4 py-8 lg:px-8 sm:py-12">
+  <h1 class="mb-6 text-on-surface text-2xl font-extrabold tracking-tight sm:text-3xl">출결 현황판</h1>
 
-<nav class="datenav">
-  <a href="?date={{ prev|date:'Y-m-d' }}">◀ 어제</a>
-  <form method="get"><input type="date" name="date" value="{{ date|date:'Y-m-d' }}" onchange="this.form.submit()"></form>
-  <a href="?date={{ next|date:'Y-m-d' }}">내일 ▶</a>
-  <a class="more" href="{% url 'export' %}?month={{ month }}">{{ month }} 내보내기 (CSV)</a>
-</nav>
+  <nav class="flex flex-wrap items-center gap-3 mb-6 text-sm font-semibold">
+    <a class="px-4 py-2 bg-surface-container-low border border-outline/30 rounded-2xl text-on-surface hover:bg-surface-container" href="?date={{ prev|date:'Y-m-d' }}">◀ 어제</a>
+    <form method="get"><input class="px-3 py-2 bg-white border border-outline/30 rounded-2xl text-on-surface" type="date" name="date" value="{{ date|date:'Y-m-d' }}" onchange="this.form.submit()"></form>
+    <a class="px-4 py-2 bg-surface-container-low border border-outline/30 rounded-2xl text-on-surface hover:bg-surface-container" href="?date={{ next|date:'Y-m-d' }}">내일 ▶</a>
+    <a class="px-4 py-2 ml-auto bg-primary-container rounded-2xl text-on-primary-container hover:bg-primary-fixed-dim" href="{% url 'export' %}?month={{ month }}">{{ month }} 내보내기 (CSV)</a>
+  </nav>
 
-{% if unclosed %}
-<section class="warn">
-  <strong>퇴실 기록이 없는 날</strong>
-  <ul>{% for a in unclosed %}<li><a href="?date={{ a.date|date:'Y-m-d' }}">{{ a.date }} {{ a.child }}</a></li>{% endfor %}</ul>
-  <p>확인 후 아래에서 직접 입력하세요. 추정 시간은 자동으로 채우지 않습니다.</p>
-</section>
-{% endif %}
+  {% if unclosed %}
+  <section class="p-5 mb-6 bg-error-container border border-error/30 rounded-3xl text-on-error-container text-sm">
+    <strong class="text-base">퇴실 기록이 없는 날</strong>
+    <ul class="mt-2 space-y-1 list-disc list-inside">{% for a in unclosed %}<li><a class="underline" href="?date={{ a.date|date:'Y-m-d' }}">{{ a.date }} {{ a.child }}</a></li>{% endfor %}</ul>
+    <p class="mt-2">확인 후 아래에서 직접 입력하세요. 추정 시간은 자동으로 채우지 않습니다.</p>
+  </section>
+  {% endif %}
 
-<table class="board">
-  <thead><tr><th>번호</th><th>이름</th><th>입실</th><th>퇴실</th><th>사유</th><th>비고</th><th></th></tr></thead>
-  <tbody>
-  {% for child, rec in children %}
-    <tr>
-      <td>{{ child.number }}</td>
-      <td>{{ child.name }}</td>
-      <td colspan="5">
-        <form method="post" class="rowform">{% csrf_token %}
-          <input type="hidden" name="child" value="{{ child.pk }}">
-          <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">
-          <input type="time" name="check_in" value="{{ rec.check_in|time:'H:i' }}">
-          <input type="time" name="check_out" value="{{ rec.check_out|time:'H:i' }}">
-          <select name="status">
-            {% for v, label in statuses %}
-              <option value="{{ v }}" {% if rec.status == v %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
-          <input type="text" name="note" value="{{ rec.note|default:'' }}" placeholder="비고">
-          <button type="submit">저장</button>
-          {% if not rec.check_out %}
-            <button type="submit" name="toggle" value="1" class="ghost">
-              {% if rec.check_in %}지금 퇴실{% else %}지금 입실{% endif %}
-            </button>
-          {% endif %}
-        </form>
-      </td>
-    </tr>
-  {% empty %}<tr><td colspan="7" class="empty">등록된 아동이 없습니다.</td></tr>{% endfor %}
-  </tbody>
-</table>
-<p><a class="more" href="{% url 'admin:center_attendance_changelist' %}">전체 기록 보기 (관리자) →</a>
-  · <a class="more" href="{% url 'import_children' %}">아동 명단 CSV 가져오기 →</a></p>
+  <div class="overflow-x-auto bg-surface-container-low border border-outline/20 rounded-3xl shadow-sm">
+    <table class="w-full text-sm">
+      <thead class="bg-surface-container text-on-surface-variant text-xs">
+        <tr><th class="px-4 py-3 text-left font-semibold">번호</th><th class="px-4 py-3 text-left font-semibold">이름</th><th class="px-4 py-3 text-left font-semibold" colspan="5">입실 · 퇴실 · 사유 · 비고</th></tr>
+      </thead>
+      <tbody class="divide-y divide-outline/10 text-on-surface">
+      {% for child, rec in children %}
+        <tr>
+          <td class="px-4 py-3 font-bold">{{ child.number }}</td>
+          <td class="px-4 py-3 font-semibold whitespace-nowrap">{{ child.name }}</td>
+          <td class="px-4 py-3" colspan="5">
+            <form method="post" class="flex flex-wrap items-center gap-2 [&_input]:px-2 [&_input]:py-1.5 [&_input]:bg-white [&_input]:border [&_input]:border-outline/30 [&_input]:rounded-xl [&_select]:px-2 [&_select]:py-1.5 [&_select]:bg-white [&_select]:border [&_select]:border-outline/30 [&_select]:rounded-xl">{% csrf_token %}
+              <input type="hidden" name="child" value="{{ child.pk }}">
+              <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">
+              <input type="time" name="check_in" value="{{ rec.check_in|time:'H:i' }}" aria-label="입실">
+              <input type="time" name="check_out" value="{{ rec.check_out|time:'H:i' }}" aria-label="퇴실">
+              <select name="status" aria-label="사유">
+                {% for v, label in statuses %}
+                  <option value="{{ v }}" {% if rec.status == v %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+              <input type="text" name="note" value="{{ rec.note|default:'' }}" placeholder="비고" aria-label="비고">
+              <button type="submit" class="px-4 py-1.5 bg-primary rounded-xl text-on-primary font-bold cursor-pointer hover:opacity-90">저장</button>
+              {% if not rec.check_out %}
+              <button type="submit" name="toggle" value="1" class="px-4 py-1.5 bg-secondary-container rounded-xl text-on-secondary-container font-bold cursor-pointer hover:opacity-90">
+                {% if rec.check_in %}지금 퇴실{% else %}지금 입실{% endif %}
+              </button>
+              {% endif %}
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="px-4 py-12 text-center text-on-surface-variant">등록된 아동이 없습니다.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <p class="mt-6 text-sm font-semibold">
+    <a class="text-primary hover:underline" href="{% url 'admin:center_attendance_changelist' %}">전체 기록 보기 (관리자) →</a>
+    <span class="mx-2 text-outline">·</span>
+    <a class="text-primary hover:underline" href="{% url 'import_children' %}">아동 명단 CSV 가져오기 →</a>
+  </p>
+</div>
 {% endblock %}

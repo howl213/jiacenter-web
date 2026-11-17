@@ -1,15 +1,28 @@
 {% extends 'center/base.html' %}
 {% block title %}프로그램{% endblock %}
+{% block main_class %}{% endblock %}
 {% block content %}
-<h1>프로그램 안내</h1>
-<div class="cards">
-  {% for p in programs %}
-  <article class="card">
-    <h2>{{ p.name }}</h2>
-    {% if p.target %}<p class="meta">대상 · {{ p.target }}</p>{% endif %}
-    {% if p.schedule %}<p class="meta">일정 · {{ p.schedule }}</p>{% endif %}
-    <p>{{ p.body|linebreaksbr }}</p>
-  </article>
-  {% empty %}<p class="empty">등록된 프로그램이 없습니다.</p>{% endfor %}
+<div class="max-w-6xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+  <div class="mb-8 sm:mb-12">
+    <span class="inline-block px-3 py-1 mb-3 bg-tertiary-container rounded-full text-on-tertiary-container text-sm font-semibold">교육·체험</span>
+    <h1 class="text-on-surface text-2xl font-extrabold tracking-tight sm:text-4xl">프로그램 안내</h1>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
+    {% for p in programs %}
+    <article class="p-6 bg-surface-container-low border border-outline/20 rounded-3xl shadow-sm transition-shadow sm:p-7 hover:shadow-md">
+      <h2 class="mb-3 text-on-surface text-lg font-bold sm:text-xl">{{ p.name }}</h2>
+      {% if p.target or p.schedule %}
+      <div class="mb-4 p-3 space-y-1 bg-surface-container border border-outline/10 rounded-2xl text-on-surface-variant text-xs font-medium">
+        {% if p.target %}<p><strong>대상</strong> · {{ p.target }}</p>{% endif %}
+        {% if p.schedule %}<p><strong>일정</strong> · {{ p.schedule }}</p>{% endif %}
+      </div>
+      {% endif %}
+      <p class="text-on-surface-variant text-sm leading-relaxed">{{ p.body|linebreaksbr }}</p>
+    </article>
+    {% empty %}
+    <p class="col-span-full py-16 text-center bg-surface-container-low border border-outline/20 rounded-3xl text-on-surface-variant">등록된 프로그램이 없습니다.</p>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}
