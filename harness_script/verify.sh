@@ -12,10 +12,10 @@ step() {
 }
 step "Django 테스트" dj manage.py test
 step "마이그레이션 누락 없음" dj manage.py makemigrations --check --dry-run
-step "개인정보·금지 파일 검사" scripts/check_leaks.sh --all
-step "하네스 스크립트 테스트" python3 -m unittest discover -s scripts
-step "갈래 검사" python3 scripts/check_track.py tree
-step "취약점 목록 ↔ 커밋" python3 scripts/check_manifest.py
+step "개인정보·금지 파일 검사" harness_script/check_leaks.sh --all
+step "하네스 스크립트 테스트" python3 -m unittest discover -s harness_script
+step "갈래 검사" python3 harness_script/check_track.py tree
+step "취약점 목록 ↔ 커밋" python3 harness_script/check_manifest.py
 echo "---"
 [ "$fail" -eq 0 ] && echo "전부 통과. (실제 브라우저·HTTPS·동시 접속·팀 스캐너는 이 점검 밖이다)" || echo "실패한 항목이 있다."
 exit "$fail"

@@ -18,7 +18,7 @@ import sys
 
 MARKER = r'\[실습 A[0-9]{2}\]'            # 심은 코드 옆에 붙이는 표시
 BANNER = '실습용 취약 버전'
-SELF = {'scripts/check_track.py', 'scripts/test_check_track.py'}
+SELF = {'harness_script/check_track.py', 'harness_script/test_check_track.py'}
 
 
 def git(*args):
@@ -39,9 +39,9 @@ def check_tree():
     if kind == 'main':
         if 'docs/vuln-manifest.md' in files:
             problems.append('docs/vuln-manifest.md (취약점 삽입 목록)가 main 갈래에 있다')
-        # docs/ 는 설명 글이, scripts/ 는 표시 문자열을 다루는 도구와 시험이 있어 뺀다. 코드·템플릿·설정만 본다.
+        # docs/ 는 설명 글이, harness_script/ 는 표시 문자열을 다루는 도구와 시험이 있어 뺀다. 코드·템플릿·설정만 본다.
         for f in files:
-            if f in SELF or f.startswith(('docs/', '99.result/', 'scripts/')):
+            if f in SELF or f.startswith(('docs/', '99.result/', 'harness_script/')):
                 continue
             text = git('show', f':{f}')
             for i, line in enumerate(text.splitlines(), 1):

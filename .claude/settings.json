@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/scripts/claude_guard.py\"",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/harness_script/claude_guard.py\"",
             "timeout": 15,
             "statusMessage": "위험 명령 점검"
           }
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/scripts/session_brief.py\"",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/harness_script/session_brief.py\"",
             "timeout": 20,
             "statusMessage": "프로젝트 상태 확인"
           }
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/scripts/prompt_reminder.py\"",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/harness_script/prompt_reminder.py\"",
             "timeout": 10,
             "statusMessage": "작업 규칙 알림"
           }
@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/scripts/stop_check.py\"",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/harness_script/stop_check.py\"",
             "timeout": 60,
             "statusMessage": "끝내기 전 빠른 점검"
           }

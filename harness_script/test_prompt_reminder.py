@@ -1,6 +1,6 @@
 """prompt_reminder.py 시험: 규칙 네 줄이 나오는지, 입력이 이상해도 질문을 막지 않는지, 설정에 걸려 있는지.
 
-실행: python -m unittest discover -s scripts
+실행: python -m unittest discover -s harness_script
 """
 import json
 import subprocess
@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / 'scripts' / 'prompt_reminder.py'
+SCRIPT = ROOT / 'harness_script' / 'prompt_reminder.py'
 
 
 class PromptReminder(unittest.TestCase):

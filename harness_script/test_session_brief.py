@@ -1,6 +1,6 @@
 """session_brief.py 시험: 세션 시작 때 목표와 상태가 나오는지, 어떤 일이 있어도 세션 시작을 막지 않는지.
 
-실행: python -m unittest discover -s scripts
+실행: python -m unittest discover -s harness_script
 """
 import json
 import os

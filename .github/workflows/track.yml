@@ -22,8 +22,8 @@ jobs:
         env:
           BASE: ${{ github.base_ref }}
           HEAD: ${{ github.head_ref }}
-        run: python3 scripts/check_track.py pr "$BASE" "$HEAD"
+        run: python3 harness_script/check_track.py pr "$BASE" "$HEAD"
       - name: 갈래 검사
-        run: python3 scripts/check_track.py tree
+        run: python3 harness_script/check_track.py tree
       - name: 삽입 목록 ↔ 커밋
-        run: python3 scripts/check_manifest.py
+        run: python3 harness_script/check_manifest.py

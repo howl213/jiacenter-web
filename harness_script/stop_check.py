@@ -8,7 +8,7 @@
 
 되풀이 방지: stop_hook_active 가 켜져 있으면(이미 이 훅 때문에 이어서 일하는 중) 통과시킨다. Claude Code 쪽에도 연속 차단 상한이 있다.
 "사용자가 직접 확인해야 하는가"는 스크립트가 알 수 없다 — 그 판단은 CLAUDE.md 2절 3번 줄이 Claude 에게 맡긴다.
-3)번은 문장 모양만 보는 거친 검사라 틀릴 수 있다. 전체 테스트는 여기서 돌리지 않는다(scripts/verify.sh 와 CI 가 한다).
+3)번은 문장 모양만 보는 거친 검사라 틀릴 수 있다. 전체 테스트는 여기서 돌리지 않는다(harness_script/verify.sh 와 CI 가 한다).
 """
 import json
 import os

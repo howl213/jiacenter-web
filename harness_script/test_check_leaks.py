@@ -1,6 +1,6 @@
 """check_leaks.sh 가 실제로 잡고, 정상 파일은 통과시키는지 임시 저장소에서 확인한다.
 
-실행: python -m unittest discover -s scripts
+실행: python -m unittest discover -s harness_script
 """
 import os
 import subprocess
