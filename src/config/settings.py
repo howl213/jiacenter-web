@@ -230,4 +230,11 @@ LOGGING = {
         'django.security': {'handlers': ['file'], 'level': 'WARNING', 'propagate': True},
     },
 }
-(BASE_DIR / 'logs').mkdir(exist_ok=True)
+if os.environ.get('DJANGO_LOG_TO_CONSOLE') == '1':
+    # Vercel 처럼 파일 시스템이 읽기 전용인 곳에서는 로그 파일을 열 수 없어 앱이 시작하다 죽는다(실제 오류 확인).
+    # 파일 대신 표준 출력으로 보내면 호스팅 쪽 로그 화면에서 본다. 보관·파기는 그쪽 정책을 따른다.
+    for handler in LOGGING['handlers'].values():
+        handler.clear()
+        handler.update({'class': 'logging.StreamHandler', 'formatter': 'verbose'})
+else:
+    (BASE_DIR / 'logs').mkdir(exist_ok=True)
