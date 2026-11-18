@@ -180,6 +180,16 @@ class AttendanceLogTests(TestCase):
         self.assertEqual(last.by, self.staff)
         self.assertEqual(last.via, 'staff')
 
+    def test_board_tells_staff_whether_the_save_worked(self):
+        self.client.login(username='staff', password='pw')
+        ok = {'child': self.child.pk, 'date': '2026-03-14', 'check_in': '14:30', 'status': '출석'}
+        r = self.client.post('/attendance/board/', ok, follow=True)
+        self.assertContains(r, '기록을 저장했습니다')
+        r = self.client.post('/attendance/board/', {**ok, 'check_in': 'abc'}, follow=True)
+        self.assertContains(r, '시간 형식이 올바르지 않아')
+        r = self.client.post('/attendance/board/', {**ok, 'status': '아무거나'}, follow=True)
+        self.assertContains(r, '사유가 올바르지 않아')
+
     def test_unchanged_save_leaves_no_log(self):
         self.client.login(username='staff', password='pw')
         data = {'child': self.child.pk, 'date': '2026-03-14', 'check_in': '14:30'}
