@@ -1,12 +1,38 @@
 {% extends 'center/base.html' %}
 {% load notice_format %}
 {% block title %}{{ notice.title }}{% endblock %}
+{% block main_class %}{% endblock %}
 {% block content %}
-<h1>{{ notice.title }}</h1>
-<time class="meta">{{ notice.created_at|date:'Y년 m월 d일' }}</time>
-<div class="body">{{ notice.body|notice_format }}</div>
-{% if notice.files.all %}
-<ul class="files">{% for f in notice.files.all %}<li><a href="{% url 'notice_file' f.pk %}">{{ f }}</a></li>{% endfor %}</ul>
-{% endif %}
-<p><a class="more" href="{% url 'notices' %}">← 목록으로</a></p>
+<div class="max-w-4xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+  <p class="mb-6"><a class="text-primary text-sm font-semibold hover:underline" href="{% url 'notices' %}">← 목록으로</a></p>
+
+  <article class="p-6 bg-surface-container-low border border-outline/20 rounded-3xl shadow-sm sm:p-10">
+    <header class="pb-6 border-b border-outline/10">
+      <div class="flex items-center gap-2 mb-3">
+        {% if notice.pinned %}<span class="px-2.5 py-0.5 bg-error-container rounded-md text-error text-xs font-bold">고정</span>{% endif %}
+        <time class="text-on-surface-variant text-xs">{{ notice.created_at|date:'Y년 m월 d일' }}</time>
+      </div>
+      <h1 class="text-on-surface text-xl font-extrabold leading-tight sm:text-3xl">{{ notice.title }}</h1>
+    </header>
+
+    {# 필터가 만드는 h3·ul·strong 은 Tailwind 초기화로 모양이 지워지므로 여기서 다시 입힌다 #}
+    <div class="py-8 text-on-surface text-sm leading-relaxed space-y-4 sm:text-base [&_h3]:mt-2 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-on-surface [&_ul]:pl-6 [&_ul]:list-disc [&_ul]:space-y-1 [&_strong]:font-bold">{{ notice.body|notice_format }}</div>
+
+    {% if notice.files.all %}
+    <div class="pt-6 mt-4 border-t border-outline/10">
+      <h2 class="mb-3 text-on-surface text-sm font-bold">첨부파일</h2>
+      <ul class="space-y-2">
+        {% for f in notice.files.all %}
+        <li><a class="flex items-center justify-between gap-2 p-3 bg-surface-container border border-outline/10 rounded-2xl text-on-surface text-sm transition-colors hover:bg-surface-container-high" href="{% url 'notice_file' f.pk %}">
+          <span class="font-medium truncate">{{ f }}</span>
+          <span class="shrink-0 text-primary font-bold">내려받기 ↓</span>
+        </a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </article>
+
+  <p class="mt-8 text-center"><a class="inline-flex px-6 py-3 bg-surface-container-high border border-outline/20 rounded-2xl text-on-surface text-sm font-bold transition-colors hover:bg-surface-container" href="{% url 'notices' %}">← 목록으로 돌아가기</a></p>
+</div>
 {% endblock %}

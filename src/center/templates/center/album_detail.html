@@ -1,13 +1,26 @@
 {% extends 'center/base.html' %}
 {% block title %}{{ album.title }}{% endblock %}
+{% block main_class %}{% endblock %}
 {% block content %}
-<h1>{{ album.title }}</h1>
-<time class="meta">{{ album.date|date:'Y년 m월 d일' }}</time>
-<ul class="albums">
-  {% for p in album.photos.all %}
-    <li><a href="{% url 'album_photo' p.pk %}"><img src="{% url 'album_photo' p.pk %}" alt="{{ p.caption }}" loading="lazy"></a>
-      {% if p.caption %}<span>{{ p.caption }}</span>{% endif %}</li>
-  {% empty %}<li class="empty">사진이 없습니다.</li>{% endfor %}
-</ul>
-<p><a class="more" href="{% url 'albums' %}">← 목록으로</a></p>
+<div class="max-w-6xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+  <p class="mb-6"><a class="text-primary text-sm font-semibold hover:underline" href="{% url 'albums' %}">← 목록으로</a></p>
+
+  <header class="mb-8">
+    <h1 class="text-on-surface text-2xl font-extrabold tracking-tight sm:text-3xl">{{ album.title }}</h1>
+    <time class="block mt-2 text-on-surface-variant text-sm">{{ album.date|date:'Y년 m월 d일' }}</time>
+  </header>
+
+  <ul class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
+    {% for p in album.photos.all %}
+    <li class="overflow-hidden bg-surface-container-low border border-outline/20 rounded-3xl shadow-sm">
+      <a href="{% url 'album_photo' p.pk %}"><img class="w-full aspect-4/3 object-cover" src="{% url 'album_photo' p.pk %}" alt="{{ p.caption }}" loading="lazy"></a>
+      {% if p.caption %}<p class="p-4 text-on-surface-variant text-sm">{{ p.caption }}</p>{% endif %}
+    </li>
+    {% empty %}
+    <li class="col-span-full py-16 text-center bg-surface-container-low border border-outline/20 rounded-3xl text-on-surface-variant">사진이 없습니다.</li>
+    {% endfor %}
+  </ul>
+
+  <p class="mt-8 text-center"><a class="inline-flex px-6 py-3 bg-surface-container-high border border-outline/20 rounded-2xl text-on-surface text-sm font-bold transition-colors hover:bg-surface-container" href="{% url 'albums' %}">← 목록으로 돌아가기</a></p>
+</div>
 {% endblock %}

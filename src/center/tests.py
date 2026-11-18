@@ -82,7 +82,7 @@ class NoticeFormatTests(TestCase):
         self.assertNotIn('<a href="https://example.com', html)
 
     def test_empty_body_does_not_break(self):
-        self.assertEqual(self.render('').count('<h1>'), 1)
+        self.assertEqual(self.render('').count('<h1 '), 1)
 
 
 class NoticeSearchTests(TestCase):

@@ -42,7 +42,9 @@ class Notice(models.Model):
 ATTACH_TYPES = [(b'%PDF-', 'pdf', 'application/pdf'),
                 (b'\x89PNG\r\n\x1a\n', 'png', 'image/png'),
                 (b'\xff\xd8\xff', 'jpg', 'image/jpeg')]
-ATTACH_MAX_BYTES = 5 * 1024 * 1024
+# Vercel 함수는 요청 본문을 4.5MB 까지만 받는다(공식 문서 limitations). 폼의 다른 값을 감안해 4MB.
+ATTACH_MAX_BYTES = 4 * 1024 * 1024
+ALBUM_PHOTO_MAX_BYTES = 4 * 1024 * 1024
 ATTACH_MAX_COUNT = 3
 
 
@@ -51,9 +53,9 @@ def sniff(head):
     return next(((ext, mime) for magic, ext, mime in ATTACH_TYPES if head.startswith(magic)), None)
 
 
-def validate_attachment(f):
-    if f.size > ATTACH_MAX_BYTES:
-        raise ValidationError('파일은 5MB 까지 올릴 수 있습니다.')
+def validate_attachment(f, max_bytes=ATTACH_MAX_BYTES):
+    if f.size > max_bytes:
+        raise ValidationError(f'파일은 {max_bytes // 1024 // 1024}MB 까지 올릴 수 있습니다.')
     f.seek(0)
     kind = sniff(f.read(16))
     f.seek(0)
@@ -79,7 +81,7 @@ def photo_path(instance, filename):
 
 
 def validate_photo(f):
-    validate_attachment(f)
+    validate_attachment(f, ALBUM_PHOTO_MAX_BYTES)
     kind = sniff(f.read(16))
     f.seek(0)
     if kind[0] == 'pdf':

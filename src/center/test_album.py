@@ -101,3 +101,19 @@ class AlbumTests(TestCase):
         self.assertIn('등록된 사진이 없습니다.', body)
         for area in ('안심 보호', '기초 학습', '문화 체험', '정서 발달', '지역사회 연계'):
             self.assertIn(area, body)
+
+
+@override_settings(MEDIA_ROOT=TMP)
+class AlbumLimitAndSeedTests(TestCase):
+    def test_photo_limit_is_4mb_for_vercel_request_cap(self):
+        from .models import ALBUM_PHOTO_MAX_BYTES
+        validate_photo(up(PNG + b'0' * (ALBUM_PHOTO_MAX_BYTES - 100)))
+        with self.assertRaises(ValidationError):
+            validate_photo(up(PNG + b'0' * ALBUM_PHOTO_MAX_BYTES))
+
+    def test_seed_dummy_creates_one_album_with_three_photos_once(self):
+        from django.core.management import call_command
+        for _ in range(2):
+            call_command('seed_dummy', stdout=open('/dev/null', 'w'))
+        self.assertEqual(Album.objects.count(), 1)
+        self.assertEqual(Photo.objects.count(), 3)

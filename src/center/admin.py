@@ -18,7 +18,7 @@ class CenterInfoAdmin(admin.ModelAdmin):
 class NoticeFileInline(admin.TabularInline):
     model = NoticeFile
     extra = 1
-    max_num = ATTACH_MAX_COUNT   # 공지당 3개까지(PDF·PNG·JPG, 5MB)
+    max_num = ATTACH_MAX_COUNT   # 공지당 3개까지(PDF·PNG·JPG, 4MB)
 
 
 @admin.register(Notice)
@@ -44,7 +44,7 @@ class AlbumAdmin(admin.ModelAdmin):
     list_display = ['title', 'date']
     fieldsets = [(None, {
         'fields': ['title', 'date'],
-        'description': '사진은 PNG·JPG, 한 장 5MB, 앨범당 20장까지. 누구나 볼 수 있습니다. '
+        'description': '사진은 PNG·JPG, 한 장 4MB, 앨범당 20장까지. 누구나 볼 수 있습니다. '
                        '사이트는 사진의 위치 정보를 지우지 않으니, 올리기 전에 위치 정보를 지워 주세요.'})]
 
 
