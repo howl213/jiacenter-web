@@ -21,6 +21,7 @@ class SessionBrief(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             git = lambda *a: subprocess.run(['git', *a], cwd=tmp, check=True, capture_output=True)
             git('init', '-q', '-b', branch)
+            git('config', 'user.name', 't')   # 없으면 CI 러너에서 commit 이 128 로 실패한다(로컬은 계정 정보로 채워짐)
             git('config', 'user.email', email)
             if hooks:
                 git('config', 'core.hooksPath', '.githooks')
