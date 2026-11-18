@@ -50,6 +50,7 @@
   </div>
 </header>
 
+{% if messages %}<div class="page pb-0" role="status">{% for m in messages %}<p class="p-4 mb-2 rounded-3xl text-sm font-bold {% if m.level_tag == 'error' %}bg-error-container text-on-error-container{% else %}bg-secondary-container text-on-secondary-container{% endif %}">{{ m }}</p>{% endfor %}</div>{% endif %}
 <main class="{% block main_class %}page{% endblock %} flex-1 w-full">{% block content %}{% endblock %}</main>
 
 <footer class="mt-10 bg-surface-container-low">

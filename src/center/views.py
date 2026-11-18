@@ -20,7 +20,7 @@ import hashlib
 import logging
 from datetime import datetime, timedelta
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
@@ -290,6 +290,7 @@ def board(request):
             status = request.POST.get('status') or '출석'
             if status not in dict(Attendance.STATUS):
                 # 선택지 밖의 값은 정산 사유가 될 수 없다. 기록을 만들기 전에 거른다.
+                messages.error(request, '사유가 올바르지 않아 저장하지 않았습니다.')
                 return redirect(f"{request.path}?date={date}")
             rec, _ = Attendance.objects.get_or_create(
                 child=child, date=date, defaults={'source': Attendance.BY_STAFF})
@@ -299,12 +300,14 @@ def board(request):
                 rec.check_out = _parse_time(request.POST.get('check_out'), date)
             except ValueError:
                 # 시간 형식이 깨졌으면 아무것도 바꾸지 않는다 — 기존 기록이 더 믿을 만하다.
+                messages.error(request, '시간 형식이 올바르지 않아 저장하지 않았습니다. 예: 14:30')
                 return redirect(f"{request.path}?date={date}")
             rec.status = status
             rec.note = request.POST.get('note', '')[:200]
             rec.source = Attendance.BY_STAFF
             rec.save()
             AttendanceLog.add(rec, before, Attendance.BY_STAFF, request.user)
+        messages.success(request, f'{child.name} 기록을 저장했습니다.')
         return redirect(f"{request.path}?date={date}")
 
     security_log.info('board_view user_id=%s date=%s', request.user.pk, date)   # 아동 실명이 보이는 화면의 열람 기록
