@@ -42,8 +42,9 @@ class Notice(models.Model):
 ATTACH_TYPES = [(b'%PDF-', 'pdf', 'application/pdf'),
                 (b'\x89PNG\r\n\x1a\n', 'png', 'image/png'),
                 (b'\xff\xd8\xff', 'jpg', 'image/jpeg')]
-ATTACH_MAX_BYTES = 5 * 1024 * 1024
-ALBUM_PHOTO_MAX_BYTES = 10 * 1024 * 1024   # 폰 사진은 공지 첨부보다 크다(사용자 결정, 2026-11-17)
+# Vercel 함수는 요청 본문을 4.5MB 까지만 받는다(공식 문서 limitations). 폼의 다른 값을 감안해 4MB.
+ATTACH_MAX_BYTES = 4 * 1024 * 1024
+ALBUM_PHOTO_MAX_BYTES = 4 * 1024 * 1024
 ATTACH_MAX_COUNT = 3
 
 

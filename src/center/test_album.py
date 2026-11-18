@@ -105,9 +105,9 @@ class AlbumTests(TestCase):
 
 @override_settings(MEDIA_ROOT=TMP)
 class AlbumLimitAndSeedTests(TestCase):
-    def test_photo_limit_is_10mb_but_attachment_stays_5mb(self):
+    def test_photo_limit_is_4mb_for_vercel_request_cap(self):
         from .models import ALBUM_PHOTO_MAX_BYTES
-        validate_photo(up(PNG + b'0' * (6 * 1024 * 1024)))   # 5MB 를 넘어도 사진은 된다
+        validate_photo(up(PNG + b'0' * (ALBUM_PHOTO_MAX_BYTES - 100)))
         with self.assertRaises(ValidationError):
             validate_photo(up(PNG + b'0' * ALBUM_PHOTO_MAX_BYTES))
 
