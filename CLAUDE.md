@@ -115,7 +115,7 @@
 
 - 클론한 뒤 한 번 `git config core.hooksPath .githooks` — 커밋 직전에 `harness_script/check_leaks.sh --staged` 가 돈다
 - 개인정보·금지 파일 판정은 `check_leaks.sh` **한 곳에서만** 한다. git 훅, CI, 다른 저장소로 보낼 때(`--external`)가 모두 이 스크립트를 부른다
-- Claude 훅(`.claude/settings.json`): 위험 명령은 `claude_guard.py` 가 막거나 묻고, 질문마다 `prompt_reminder.py` 가 규칙을 일깨우고(지켰는지는 사람이 본다), 세션 시작에 `session_brief.py` 가 상태를 알리고(정상이면 한 줄, 경고만 자세히), 끝내려 할 때 `stop_check.py` 가 한 번 막는다(코드를 고친 뒤 테스트 기록 없음, 빠른 점검 실패, 확인 근거 없는 단정)
+- Claude 훅(`.claude/settings.json`): 위험 명령은 `claude_guard.py` 가 막거나 묻고, 질문마다 `prompt_reminder.py` 가 규칙을 일깨우고(지켰는지는 사람이 본다), 세션 시작에 `session_brief.py` 가 상태를 알리고(정상이면 한 줄, 경고만 자세히), 끝내려 할 때 `stop_check.py` 가 한 번 막는다(코드를 고쳤는데 검증 근거 없이 "통과"를 주장함, 확인 근거 없는 단정). 훅은 `manage.py check` 같은 검사 명령을 직접 실행하지 않는다 — 검사는 Claude 가 승인받아 돌리고 훅은 그 기록만 읽는다. 결과가 불명확하면 막지 않고 `systemMessage` 로 사용자에게만 알린다. 막은 뒤 다시 끝내려 하면(`stop_hook_active`) 같은 점검을 다시 하되 막지 않고 `systemMessage` 로 사용자에게만 알린다. 사용자가 Auto 모드로 써도 이 점검과 위험 명령 훅은 그대로 동작한다. 재검사 출력이 실제로 반복을 멈추는지, 화면 표시는 미검증
 - 두 갈래가 섞이지 않게 `check_track.py` 가 본다 — main 에는 취약판 표시(`[실습 A0N]`, 배너, 삽입 목록)가 없어야 하고, vuln 에는 답안지(`SECURITY_REVIEW.md`)가 없어야 하며, vuln → main PR 은 막는다. 삽입 목록(`docs/vuln-manifest.md`) 항목마다 같은 이름의 커밋이 있는지는 `check_manifest.py` 가 본다
 - 팀에게 vuln 코드를 넘길 때는 `harness_script/export_for_team.py <새 폴더>` 로 폴더를 만든다(내부 문서·시험·답안지 제외, 심은 곳의 설명 주석 삭제, 검사 통과해야 끝남). 푸시는 사용자 확인 뒤에 직접. 심은 곳의 설명은 반드시 `# [실습 A0N] ...` 주석 줄로만 쓴다
 - 팀이 찾은 취약점은 `99.result/docs/발견-순환.md` 절차로 처리한다 (의도/비의도 분류 → main 에서 재현 → 시험 먼저 → main 수정. vuln 에는 합치지 않는다)
