@@ -320,8 +320,8 @@
 
 ### 2026-11-16 추가 — 활동앨범·새 디자인 (1장 점검 뒤에 생긴 것)
 
-- [ ] **[A03]** 화면이 바깥 주소의 스크립트·글꼴을 불러온다 — `base.html` 의 Tailwind 브라우저판(jsdelivr, `@4` 로만 지정), Pretendard, Jua. 무결성 검사(SRI)가 없어 그쪽이 바뀌면 우리 화면에서 그대로 실행된다. 배포 전에 빌드한 CSS 파일로 바꾼다
-- [ ] **[A02]** CSP 머리말은 첨부·사진 응답에만 있다(`default-src 'none'; sandbox`). 일반 화면에는 없다 — CDN 을 걷어낸 뒤 정한다
+- [x] **[A03]** 화면이 바깥 주소의 스크립트·글꼴을 불러오던 것을 자체 파일로 바꿨다 — Tailwind 는 빌드한 `center/tailwind.css`, Pretendard·Jua 는 `static/center/fonts/`. (2026-11-23 코드 대조: `templates/` 와 `style.css` 에서 `http(s)://` 주소 검색 0건. 이전에는 `base.html` 이 jsdelivr 의 Tailwind 브라우저판을 불러왔고 무결성 검사(SRI)가 없었다)
+- [ ] **[A02]** CSP 머리말은 첨부·사진 응답에만 있다(`default-src 'none'; sandbox`). 일반 화면에는 없다 — CDN 은 걷어냈으므로(위 A03) 이제 일반 화면에 어떤 CSP 를 걸지 정할 차례다
 - [ ] 앨범 사진의 위치 정보(EXIF)를 코드가 지우지 않는다. 올리는 사람이 지우기로 한 결정(2026-11-16)이라 사람 절차에 기댄다
 - [x] 앨범 사진은 전용 뷰로만 내보낸다 — PNG·JPG 만, `nosniff`, CSP sandbox (`center/test_album.py`)
 - 의존성은 이제 Django 와 그 부속(asgiref·sqlparse) 외에 gunicorn·whitenoise 가 있다(`requirements.txt`). 1장 A03 의 "2개뿐"은 2026-11-05 기준이다
